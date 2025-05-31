@@ -1,39 +1,47 @@
 import streamlit as st
-from my_calendar import write_calendar
 import datetime
 import uuid
 
+import streamlit as st
+import streamlit_calendar as st_calendar
+
+# オプションを指定
+options = {
+    'initialView': 'dayGridMonth'
+}
+def write_calendar(event_list):# イベントを表示するカレンダーを作成
+    st_calendar.calendar(events = event_list, options = options)
+
 st.title("タスク登録")
 
-# セッションにイベントリストがなければ初期化
 if "events" not in st.session_state:
     st.session_state.events = []
 
-# 2カラムでレイアウト（左: カレンダー、右: フォーム）
-col1, col2 = st.columns([2, 1])
+# ✅ カレンダーを全幅表示
+st.subheader("カレンダー")
+write_calendar(st.session_state.events)
 
-# 左：カレンダーを表示
-with col1:
-    write_calendar(st.session_state.events)
+# ✅ イベント入力フォームを下に配置
+st.subheader("イベント追加")
+event_date = st.date_input("日付", datetime.date.today())
+title = st.text_input("イベント名")
+start_time = st.time_input("開始時刻")
+end_time = st.time_input("終了時刻")
 
-# 右：イベント入力フォーム
-with col2:
-    st.subheader("イベント追加")
+if st.button("追加"):
+    if title.strip() and start_time < end_time:
+        start_datetime = datetime.datetime.combine(event_date, start_time)
+        end_datetime = datetime.datetime.combine(event_date, end_time)
 
-    title = st.text_input("イベント名")
-    start_time = st.time_input("開始時刻")
-    end_time = st.time_input("終了時刻")
+        new_event = {
+            "id": str(uuid.uuid4()),
+            "title": title.strip(),
+            "start": start_datetime.isoformat(),
+            "end": end_datetime.isoformat(),
 
-    if st.button("追加"):
-        if title.strip() and start_time < end_time:
-            new_event = {
-                "id":str(uuid.uuid4()),
-                "title": title.strip(),
-                "title": title.strip(),
-                "start": start_time.strftime("%H:%M"),
-                "end": end_time.strftime("%H:%M")
-            }
-            st.session_state.events.append(new_event)
-            st.success("イベントを追加しました！")
-        else:
-            st.error("正しいイベント名と時刻を入力してください。")
+        }
+        st.session_state.events.append(new_event)
+        st.success("イベントを追加しました！")
+        st.rerun()
+    else:
+        st.error("正しいイベント名と時刻を入力してください。")
