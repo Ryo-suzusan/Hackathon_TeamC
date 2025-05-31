@@ -5,4 +5,3 @@ def write_calendar(event_list) {# イベントを表示するカレンダーを�
     cal = st_calendar.calendar(events=event_list)
     st.write(cal)
 }
-
