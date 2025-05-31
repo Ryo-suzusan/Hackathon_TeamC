@@ -12,7 +12,7 @@ col1, col2 = st.columns([2, 1])
 
 # 左：カレンダーを表示
 with col1:
-    show_calendar(st.session_state.events)
+    write_calendar(st.session_state.events)
 
 # 右：イベント入力フォーム
 with col2:
