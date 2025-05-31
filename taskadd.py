@@ -1,7 +1,9 @@
 import streamlit as st
 from my_calendar import write_calendar
+import datetime
+import uuid
 
-st.title("カレンダー＋イベント登録")
+st.title("タスク登録")
 
 # セッションにイベントリストがなければ初期化
 if "events" not in st.session_state:
@@ -24,11 +26,14 @@ with col2:
 
     if st.button("追加"):
         if title.strip() and start_time < end_time:
-            st.session_state.events.append({
+            new_event = {
+                "id":str(uuid.uuid4()),
+                "title": title.strip(),
                 "title": title.strip(),
                 "start": start_time.strftime("%H:%M"),
                 "end": end_time.strftime("%H:%M")
-            })
+            }
+            st.session_state.events.append(new_event)
             st.success("イベントを追加しました！")
         else:
             st.error("正しいイベント名と時刻を入力してください。")
