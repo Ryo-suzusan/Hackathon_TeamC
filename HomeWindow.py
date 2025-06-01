@@ -817,6 +817,9 @@ def task_list_page():
     """タスク一覧"""
     st.title('📋 タスク一覧')
 
+    if "get_message" in st.session_state:
+        st.success(st.session_state.get_message)
+
     # 完了メッセージの表示（ページ上部）
     if "done_message" in st.session_state:
         st.success(st.session_state.done_message)
@@ -888,16 +891,16 @@ def task_list_page():
 
                     if rarity == 4:
                         st.session_state.feed_inventory["特上肉"]["count"] += 1
-                        st.info("特上肉を手に入れました")
+                        st.session_state.get_message = f"「特上肉」を入手しました！"
                     elif rarity == 3:
                         st.session_state.feed_inventory["肉"]["count"] += 1
-                        st.info("肉を手に入れました")
+                        st.session_state.get_message = f"「肉」を入手しました！"
                     elif rarity == 2:
                         st.session_state.feed_inventory["果物"]["count"] += 1
-                        st.info("果物を手に入れました")
+                        st.session_state.get_message = f"「果物」を入手しました！"
                     else:
                         st.session_state.feed_inventory["野菜"]["count"] += 1
-                        st.info("野菜を手に入れました")
+                        st.session_state.get_message = f"「野菜」を入手しました！"
 
 
                     st.session_state.events.pop(i)
