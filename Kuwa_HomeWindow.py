@@ -297,11 +297,13 @@ def add_tasks_page():
 
         if st.button("➕ 追加"):
             if title.strip():
+                start_datetime = datetime.datetime.now()
                 end_datetime = datetime.datetime.combine(event_date, end_time)
                 
                 new_event = {
                     "id": str(uuid.uuid4()),
                     "title": title.strip(),
+                    "start": start_datetime.isoformat(),
                     "end": end_datetime.isoformat(),
                 }
                 
@@ -348,6 +350,10 @@ def task_list_page():
     """タスク一覧"""
     st.title('📋 タスク一覧')
 
+    # 完了メッセージの表示（ページ上部）
+    if "done_message" in st.session_state:
+        st.success(st.session_state.done_message)
+
     #eventsの初期化
     if "events" not in st.session_state:
         st.session_state.events = []
@@ -359,8 +365,9 @@ def task_list_page():
     if not st.session_state.events:
         st.info("タスクがありません")
     else:
-        for event in st.session_state.events:
+        for i, event in enumerate(st.session_state.events):
             col1, col2, col3 = st.columns([6, 1, 1])  # タイトル + 編集 + 完了
+
             with col1:
                 st.markdown(f"""
                 <div style="
@@ -376,16 +383,22 @@ def task_list_page():
                 """, unsafe_allow_html=True)
 
             with col2:
-                if st.button("✏️", key=f"edit_{i}"):
-                    #編集する奴
+                if st.button("✏️", key=f"edit_{event['id']}"):
+                    # 編集処理
+                    st.session_state.edit_index = i  # 例: 編集対象を保存
                     st.rerun()
 
-            with col3:
-                if st.button("✅", key=f"done_{i}"):
+            with col3:  
+                if st.button("✅", key=f"done_{event['id']}"):
                     st.session_state.events.pop(i)
+                    st.session_state.done_message = f"✅「{event['title']}」を完了しました！お疲れ様！"
                     st.rerun()
+
                 
     if st.button('← メニューに戻る'):
+        if "done_message" in st.session_state:
+            del st.session_state["done_message"]
+
         st.session_state.current_page = 'main'
         st.rerun()
 

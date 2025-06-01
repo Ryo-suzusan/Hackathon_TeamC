@@ -324,9 +324,11 @@ def add_tasks_page():
             with conf_col1:
                 if st.button("✅ 確認・追加", type="primary", use_container_width=True):
                     # タスクを実際に追加
+                    start_datetime = datetime.datetime.now()
                     new_event = {
                         "id": str(uuid.uuid4()),
                         "title": st.session_state.temp_task['title'],
+                        "start": start_datetime.isoformat(),
                         "end": st.session_state.temp_task['end_datetime'].isoformat(),
                     }
                     
@@ -412,6 +414,62 @@ def add_tasks_page():
         st.empty()  # 右側は空にしておく
 
     if st.button('← メニューに戻る'):
+        st.session_state.current_page = 'main'
+        st.rerun()
+
+def task_list_page():
+    """タスク一覧"""
+    st.title('📋 タスク一覧')
+
+    # 完了メッセージの表示（ページ上部）
+    if "done_message" in st.session_state:
+        st.success(st.session_state.done_message)
+
+    #eventsの初期化
+    if "events" not in st.session_state:
+        st.session_state.events = []
+
+    #for event in st.session_state.events:
+        #key=f"text_area_{event['id']}"  # 一意なkeyを使用
+        #st.metric(event["title"], event["start"], event["end"])
+
+    if not st.session_state.events:
+        st.info("タスクがありません")
+    else:
+        for i, event in enumerate(st.session_state.events):
+            col1, col2, col3 = st.columns([6, 1, 1])  # タイトル + 編集 + 完了
+
+            with col1:
+                st.markdown(f"""
+                <div style="
+                    background-color: #f0f2f6;
+                    padding: 15px;
+                    border-radius: 10px;
+                    margin-bottom: 10px;
+                    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+                ">
+                    <strong>{event['title']}</strong><br>
+                    🕒 {event['start']} 〜 {event['end']}
+                </div>
+                """, unsafe_allow_html=True)
+
+            with col2:
+                if st.button("✏️", key=f"edit_{event['id']}"):
+                    # 編集処理
+                    st.session_state.edit_index = i  # 例: 編集対象を保存
+                    st.rerun()
+
+            with col3:  
+                if st.button("✅", key=f"done_{event['id']}"):
+                    st.session_state.events.pop(i)
+                    st.session_state.done_message = f"✅「{event['title']}」を完了しました！お疲れ様！"
+                    st.rerun()
+
+                
+    if st.button('← メニューに戻る'):
+        if "done_message" in st.session_state:
+            del st.session_state["done_message"]
+
         st.session_state.current_page = 'main'
         st.rerun()
 
