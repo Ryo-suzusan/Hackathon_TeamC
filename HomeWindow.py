@@ -11,11 +11,43 @@ from pathlib import Path
 if 'current_page' not in st.session_state:
     st.session_state.current_page = 'main'
 
+# 永続化されたデータを読み込む関数を追加
+def load_persistent_data():
+    """永続化されたデータを読み込む"""
+    try:
+        import json
+        import os
+        if os.path.exists('game_data.json'):
+            with open('game_data.json', 'r') as f:
+                return json.load(f)
+    except:
+        pass
+    return {}
+
+def save_persistent_data():
+    """データを永続化する"""
+    try:
+        import json
+        data = {
+            'energy': st.session_state.energy,
+            'level': st.session_state.level,
+            'feed_inventory': st.session_state.get('feed_inventory', {}),
+            'feeding_log': st.session_state.get('feeding_log', []),
+            'events': st.session_state.get('events', [])  # ← この行を追加
+        }
+        with open('game_data.json', 'w') as f:
+            json.dump(data, f)
+    except:
+        pass
+
+# データ読み込み
+persistent_data = load_persistent_data()
+
 if 'energy' not in st.session_state:
-    st.session_state.energy = 0
+    st.session_state.energy = persistent_data.get('energy', 0)
 
 if 'level' not in st.session_state:
-    st.session_state.level = 0
+    st.session_state.level = persistent_data.get('level', 0)
 
 levelup = [20, 30, 40, 50]
 
@@ -338,16 +370,15 @@ def feed_box_page():
 
     # セッション状態の初期化
     if 'feed_inventory' not in st.session_state:
-        st.session_state.feed_inventory = {
-            #あとでHomeWindow.pyに修正
+        st.session_state.feed_inventory = persistent_data.get('feed_inventory', {
             "野菜": {"count": 15, "icon": "🥕", "rank": 1},
             "果物": {"count": 12, "icon": "🍎", "rank": 2},
             "肉": {"count": 8, "icon": "🍖", "rank": 5},
             "特上肉": {"count": 3, "icon": "🥩", "rank": 10}
-        }
+        })
 
     if 'feeding_log' not in st.session_state:
-        st.session_state.feeding_log = []
+        st.session_state.feeding_log = persistent_data.get('feeding_log', [])
 
     if 'confirm_feed' not in st.session_state:
         st.session_state.confirm_feed = None
@@ -384,6 +415,7 @@ def feed_box_page():
             f'<img src="data:image/gif;base64,{data_url}" alt="cat gif">',
             unsafe_allow_html=True,
             )
+            save_persistent_data()
 
     def show_confirmation_dialog(feed_name):
         """確認ダイアログを表示"""
@@ -485,7 +517,7 @@ def add_tasks_page():
 
     # ✅ 初期化（セッション）
     if "events" not in st.session_state:
-        st.session_state.events = []
+        st.session_state.events = persistent_data.get('events', [])  # ← 修正
 
     if "selected_date" not in st.session_state:
         st.session_state.selected_date = datetime.date.today()
@@ -544,8 +576,9 @@ def add_tasks_page():
                     }
                     
                     st.session_state.events.append(new_event)
+                    save_persistent_data()  # ← この行を追加
                     st.success("✅ タスクを追加しました！")
-                    
+
                     # 確認画面を閉じる
                     st.session_state.show_confirmation = False
                     st.session_state.temp_task = {}
@@ -672,6 +705,7 @@ def change_task_page():
                     }
                     
                     st.session_state.events[st.session_state.edit_index] = updated_event
+                    save_persistent_data()
                     st.success("✅ タスクを更新しました！")
                     
                     # 編集状態をクリア
@@ -752,7 +786,8 @@ def delete_task_page():
                 # タスクを削除
                 deleted_task_title = st.session_state.events[st.session_state.edit_index]['title']
                 st.session_state.events.pop(st.session_state.edit_index)
-                
+                save_persistent_data()
+
                 # 削除メッセージを設定
                 st.session_state.done_message = f"🗑️「{deleted_task_title}」を削除しました"
                 
@@ -795,7 +830,7 @@ def task_list_page():
 
     #eventsの初期化
     if "events" not in st.session_state:
-        st.session_state.events = []
+        st.session_state.events = persistent_data.get('events', [])
 
     #for event in st.session_state.events:
         #key=f"text_area_{event['id']}"  # 一意なkeyを使用
@@ -830,6 +865,7 @@ def task_list_page():
             with col3:  
                 if st.button("✅", key=f"done_{event['id']}"):
                     st.session_state.events.pop(i)
+                    save_persistent_data()
                     st.session_state.done_message = f"✅「{event['title']}」を完了しました！お疲れ様！"
                     st.rerun()
 
