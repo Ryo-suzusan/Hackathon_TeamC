@@ -340,11 +340,10 @@ def feed_box_page():
     if 'feed_inventory' not in st.session_state:
         st.session_state.feed_inventory = {
             #あとでHomeWindow.pyに修正
-            "魚": {"count": 10, "icon": "🐟", "rank": 1},
-            "肉": {"count": 8, "icon": "🍖", "rank": 2},
-            "野菜": {"count": 15, "icon": "🥕", "rank": 3},
-            "果物": {"count": 12, "icon": "🍎", "rank": 4},
-            "特別餌": {"count": 3, "icon": "✨", "rank": 5}
+            "野菜": {"count": 15, "icon": "🥕", "rank": 1},
+            "果物": {"count": 12, "icon": "🍎", "rank": 2},
+            "肉": {"count": 8, "icon": "🍖", "rank": 5},
+            "特上肉": {"count": 3, "icon": "🥩", "rank": 10}
         }
 
     if 'feeding_log' not in st.session_state:
@@ -353,7 +352,6 @@ def feed_box_page():
     if 'confirm_feed' not in st.session_state:
         st.session_state.confirm_feed = None
 
-    #あとでHomeWindow.pyに修正
     if 'show_feed_result' not in st.session_state:
         st.session_state.show_feed_result = False
 
@@ -406,7 +404,7 @@ def feed_box_page():
             # 餌のアイコンと名前
             st.markdown(f"<div style='text-align: center; font-size: 3em;'>{feed_data['icon']}</div>", 
                        unsafe_allow_html=True)
-            st.markdown(f"<div style='text-align: center; font-weight: bold;'>{feed_name}</div>", 
+            st.markdown(f"<div style='text-align: center; font-weight: bold;'>{feed_name}(+{feed_data['rank']})</div>", 
                        unsafe_allow_html=True)
             st.markdown(f"<div style='text-align: center; color: #666;'>在庫: {feed_data['count']}個</div>", 
                        unsafe_allow_html=True)
@@ -458,44 +456,6 @@ def feed_box_page():
         recent_logs = st.session_state.feeding_log[-5:]
         for i, log in enumerate(reversed(recent_logs)):
             st.write(f"{len(recent_logs) - i}. {log}")
-
-    """
-    # サイドバーに統計情報
-    with st.sidebar:
-        st.header("📊 統計")
-    
-        # 総在庫数
-        total_inventory = sum(feed_data["count"] for feed_data in st.session_state.feed_inventory.values())
-        st.metric("総在庫数", f"{total_inventory}個")
-    
-        # 餌やり回数
-        total_feedings = len(st.session_state.feeding_log)
-        st.metric("餌やり回数", f"{total_feedings}回")
-    
-        st.markdown("---")
-        st.subheader("🔧 管理")
-    
-        # 在庫補充ボタン
-        if st.button("📦 在庫補充", use_container_width=True):
-            for feed_name in st.session_state.feed_inventory:
-                st.session_state.feed_inventory[feed_name]["count"] += 5
-            st.success("在庫を補充しました！")
-            st.rerun()
-    
-        # リセットボタン
-        if st.button("🔄 データリセット", use_container_width=True, type="secondary"):
-            st.session_state.feed_inventory = {
-                "魚": {"count": 10, "icon": "🐟"},
-                "肉": {"count": 8, "icon": "🍖"},
-                "野菜": {"count": 15, "icon": "🥕"},
-                "果物": {"count": 12, "icon": "🍎"},
-                "特別餌": {"count": 3, "icon": "✨"}
-            }
-            st.session_state.feeding_log = []
-            st.session_state.confirm_feed = None
-            st.success("データをリセットしました！")
-            st.rerun()
-    """
     
     if st.button('← メニューに戻る'):
         st.session_state.current_page = 'main'
