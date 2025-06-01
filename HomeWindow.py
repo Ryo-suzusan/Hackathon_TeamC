@@ -137,6 +137,15 @@ with col1:
 
 with col2:
     #画面右
+    # プログレスバー
+    st.subheader(f"Lv.{st.session_state.level + 1}")
+    if st.session_state.level != 3:
+        st.progress(st.session_state.energy / levelup[st.session_state.level + 1])
+        st.write(f"レベルアップまで: {levelup[st.session_state.level] - st.session_state.energy}/{levelup[st.session_state.level]}")
+    else:
+        st.progress(1 / 1)
+        st.write(f"レベルMAX")
+        
     file_ = open(f"MyPet/Idle{st.session_state.level}.gif", "rb")
     contents = file_.read()
     data_url = base64.b64encode(contents).decode("utf-8")
@@ -565,11 +574,3 @@ elif st.session_state.current_page == 'add_tasks':
 elif st.session_state.current_page == 'task_list':
     task_list_page()
 
-# プログレスバー
-st.subheader(f"Lv.{st.session_state.level + 1}")
-if st.session_state.level != 3:
-    st.progress(st.session_state.energy / levelup[st.session_state.level + 1])
-    st.write(f"レベルアップまで: {st.session_state.energy}/{levelup[st.session_state.level]}")
-else:
-    st.progress(1 / 1)
-    st.write(f"レベルMAX")
