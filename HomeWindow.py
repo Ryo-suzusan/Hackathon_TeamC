@@ -286,22 +286,13 @@ def statistics_page():
 
 def help_page():
     """ヘルプページ"""
-    # メインタイトルとメニューに戻るボタンを横並びで配置
-    title_col, button_col = st.columns([6, 1])
-    with title_col:
-        st.title("❓ ヘルプ")
-    with button_col:
-        st.write("")
-        st.write("")
-        if st.button('← メニューに戻る', key="back_to_menu_top"):
-            st.session_state.current_page = 'main'
-            st.rerun()
+    st.title("❓ ヘルプ")
     st.markdown("---")
     
-    st.subheader("🐾 育てて達成！マイペットについて")
+    st.subheader("🐾 「育てて達成！マイペット」とは？")
     st.write("""
-    このアプリは、タスク管理とペット育成を組み合わせた楽しいアプリです！
-    タスクを完了したり、ペットに餌をあげたりしてペットを育てましょう。
+    タスク管理とペット育成を組み合わせた楽しいブラウザアプリです！
+    タスクを完了してエサをゲットし、ペットを育ててあげましょう。
     """)
     
     st.subheader("📖 使い方")
@@ -309,18 +300,20 @@ def help_page():
     with st.expander("📝 タスク管理"):
         st.write("""
         **タスク追加**: 新しいタスクを追加できます
-        - 日付と時刻を指定してタスクを登録
+        - 締め切りの日付と時刻を指定してタスクを登録
         - カレンダーでタスクの確認が可能
         
         **タスク一覧**: 登録済みのタスクを一覧表示
         - すべてのタスクを時系列で確認
+        - 達成を選択することで、エサがゲットできる
+        - タスクを早く終わらせるほど、ランクの高いエサを得られる
         """)
     
     with st.expander("🍖 ペット育成"):
         st.write("""
         **エサ箱**: ペットに餌をあげてエネルギーを増やそう
-        - 5種類の餌から選択可能
-        - 餌をあげるとエネルギーが1増加
+        - 4種類の餌から選択可能
+        - 餌をあげるとエネルギーが溜まる
         - エネルギーが一定値に達するとレベルアップ！
         """)
     
@@ -332,6 +325,9 @@ def help_page():
         - 最近の活動履歴
         """)
     
+    if st.button('← メニューに戻る'):
+        st.session_state.current_page = 'main'
+        st.rerun()
 
 def feed_box_page():
     """エサ箱ページ"""

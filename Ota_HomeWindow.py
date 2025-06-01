@@ -183,7 +183,7 @@ with col2:
     # プログレスバー
     st.subheader(f"Lv.{st.session_state.level + 1}")
     if st.session_state.level != 3:
-        st.progress(st.session_state.energy / levelup[st.session_state.level])
+        st.progress(st.session_state.energy / levelup[st.session_state.level + 1])
         st.write(f"レベルアップまで: {levelup[st.session_state.level] - st.session_state.energy}/{levelup[st.session_state.level]}")
     else:
         st.progress(1 / 1)
@@ -237,16 +237,27 @@ def main_page():
 
 def statistics_page():
     """統計ページ"""
-    st.title("📊 統計")
+    # メインタイトルとメニューに戻るボタンを横並びで配置
+    title_col, button_col = st.columns([6, 1])
+    with title_col:
+        st.title("📊 統計")
+    with button_col:
+        st.write("")
+        st.write("")
+        if st.button('← メニューに戻る', key="back_to_menu_top"):
+            st.session_state.current_page = 'main'
+            st.rerun()
     st.markdown("---")
     
     col1, col2 = st.columns(2)
     
     with col1:
         st.subheader("🎮 ゲーム統計")
+        st.metric("現在のLevel", st.session_state.level+1)
         st.metric("現在のエネルギー", st.session_state.energy)
-        progress_percentage = (st.session_state.energy / levelup) * 100
-        st.metric("レベル進捗", f"{progress_percentage:.1f}%")
+        if st.session_state.level != 3:
+            progress_percentage = (st.session_state.energy / levelup[st.session_state.level]) * 100
+            st.metric("次のレベルまでの進捗", f"{progress_percentage:.1f}%")
         
         # タスク統計
         if 'events' in st.session_state:
@@ -271,20 +282,17 @@ def statistics_page():
             st.write(f"• {log}")
     else:
         st.info("まだ餌やりの記録がありません")
-    
-    if st.button('← メニューに戻る'):
-        st.session_state.current_page = 'main'
-        st.rerun()
+
 
 def help_page():
     """ヘルプページ"""
     st.title("❓ ヘルプ")
     st.markdown("---")
     
-    st.subheader("🐾 育てて達成！マイペットについて")
+    st.subheader("🐾 「育てて達成！マイペット」とは？")
     st.write("""
-    このアプリは、タスク管理とペット育成を組み合わせた楽しいアプリです！
-    タスクを完了したり、ペットに餌をあげたりしてペットを育てましょう。
+    タスク管理とペット育成を組み合わせた楽しいブラウザアプリです！
+    タスクを完了してエサをゲットし、ペットを育ててあげましょう。
     """)
     
     st.subheader("📖 使い方")
@@ -292,18 +300,20 @@ def help_page():
     with st.expander("📝 タスク管理"):
         st.write("""
         **タスク追加**: 新しいタスクを追加できます
-        - 日付と時刻を指定してタスクを登録
+        - 締め切りの日付と時刻を指定してタスクを登録
         - カレンダーでタスクの確認が可能
         
         **タスク一覧**: 登録済みのタスクを一覧表示
         - すべてのタスクを時系列で確認
+        - 達成を選択することで、エサがゲットできる
+        - タスクを早く終わらせるほど、ランクの高いエサを得られる
         """)
     
     with st.expander("🍖 ペット育成"):
         st.write("""
         **エサ箱**: ペットに餌をあげてエネルギーを増やそう
-        - 5種類の餌から選択可能
-        - 餌をあげるとエネルギーが1増加
+        - 4種類の餌から選択可能
+        - 餌をあげるとエネルギーが溜まる
         - エネルギーが一定値に達するとレベルアップ！
         """)
     
@@ -314,20 +324,6 @@ def help_page():
         - タスクと餌やりの統計
         - 最近の活動履歴
         """)
-    
-    with st.expander("⚙️ 設定"):
-        st.write("""
-        **設定**: ゲームの各種設定を変更
-        - レベルアップ必要エネルギーの調整
-        - データのリセット機能
-        """)
-    
-    st.subheader("💡 ヒント")
-    st.info("""
-    - 定期的にタスクを追加して、計画的に進めましょう
-    - ペットの餌やりを忘れずに！エネルギーがたまるとレベルアップします
-    - 統計画面で進捗を確認して、モチベーションを保ちましょう
-    """)
     
     if st.button('← メニューに戻る'):
         st.session_state.current_page = 'main'
@@ -389,8 +385,16 @@ def feed_box_page():
         """確認ダイアログを表示"""
         st.session_state.confirm_feed = feed_name
 
-    # メインタイトル
-    st.title("🐾 餌やりコーナー")
+    # メインタイトルとメニューに戻るボタンを横並びで配置
+    title_col, button_col = st.columns([6, 1])
+    with title_col:
+        st.title("🐾 餌やりコーナー")
+    with button_col:
+        st.write("")
+        st.write("")
+        if st.button('← メニューに戻る', key="back_to_menu_top"):
+            st.session_state.current_page = 'main'
+            st.rerun()
     st.markdown("---")
 
     # 餌の在庫表示と餌やりボタン
@@ -457,9 +461,6 @@ def feed_box_page():
         for i, log in enumerate(reversed(recent_logs)):
             st.write(f"{len(recent_logs) - i}. {log}")
     
-    if st.button('← メニューに戻る'):
-        st.session_state.current_page = 'main'
-        st.rerun()
 
 def add_tasks_page():
     """タスク追加"""
@@ -554,8 +555,15 @@ def add_tasks_page():
                     st.rerun()
         
         else:
-            # 通常のタスク追加フォーム
-            st.subheader("📝 タスク追加")
+            # サブヘッダーとボタンを横並びで配置
+            header_col, btn_col = st.columns([2.4, 1])
+            with header_col:
+                st.subheader("📝 タスク追加")
+            with btn_col:
+                st.write("")
+                if st.button('← メニューに戻る'):
+                    st.session_state.current_page = 'main'
+                    st.rerun()
 
             # 選択中の日付をデフォルトに
             event_date = st.date_input("日付", st.session_state.selected_date, key="event_date_input")
@@ -619,66 +627,163 @@ def add_tasks_page():
     with right_col:
         st.empty()  # 右側は空にしておく
 
-    if st.button('← メニューに戻る'):
-        st.session_state.current_page = 'main'
-        st.rerun()
 
 def change_task_page():
     """タスク編集"""
-    st.title('✏️ タスク編集')
-    
-    if "edit_index" not in st.session_state or st.session_state.edit_index is None:
-        st.error("編集するタスクが選択されていません")
-        if st.button('← 一覧に戻る'):
-            st.session_state.current_page = 'task_list'
-            st.rerun()
-        return
-    
-    # 編集対象のタスクを取得
-    edit_event = st.session_state.events[st.session_state.edit_index]
-    
-    # 編集フォーム
-    title = st.text_input("タスク名", value=edit_event['title'])
-    # 既存の終了時刻から日付と時刻を分離
-    end_datetime = datetime.datetime.fromisoformat(edit_event['end'])
-    
-    event_date = st.date_input("日付", value=end_datetime.date())
-    end_time = st.time_input("終了時刻", value=end_datetime.time())
-    
-    col1, col2 = st.columns(2)
+    # 左半分にコンテンツを表示
+    col1, col2 = st.columns([1, 1])
     
     with col1:
-        if st.button("💾 保存"):
-            if title.strip():
-                # タスクを更新
-                updated_event = {
-                    "id": edit_event['id'],
-                    "title": title.strip(),
-                    "start": edit_event['start'],
-                    "end": datetime.datetime.combine(event_date, end_time).isoformat(),
-                }
+        st.title('✏️ タスク編集')
+        
+        if "edit_index" not in st.session_state or st.session_state.edit_index is None:
+            st.error("編集するタスクが選択されていません")
+            if st.button('← 一覧に戻る'):
+                st.session_state.current_page = 'task_list'
+                st.rerun()
+            return
+        
+        # 編集対象のタスクを取得
+        edit_event = st.session_state.events[st.session_state.edit_index]
+        
+        # 編集フォーム
+        title = st.text_input("タスク名", value=edit_event['title'])
+        # 既存の終了時刻から日付と時刻を分離
+        end_datetime = datetime.datetime.fromisoformat(edit_event['end'])
+        
+        event_date = st.date_input("日付", value=end_datetime.date())
+        end_time = st.time_input("終了時刻", value=end_datetime.time())
+        
+        button_col1, button_col2 = st.columns(2)
+        
+        with button_col1:
+            if st.button("💾 保存"):
+                if title.strip():
+                    # タスクを更新
+                    updated_event = {
+                        "id": edit_event['id'],
+                        "title": title.strip(),
+                        "start": edit_event['start'],
+                        "end": datetime.datetime.combine(event_date, end_time).isoformat(),
+                    }
+                    
+                    st.session_state.events[st.session_state.edit_index] = updated_event
+                    st.success("✅ タスクを更新しました！")
+                    
+                    # 編集状態をクリア
+                    st.session_state.edit_index = None
+                    st.session_state.current_page = 'task_list'
+                    st.rerun()
+                else:
+                    st.error("❌ 正しいタスク名を入力してください。")
+        
+        with button_col2:
+            if st.button("❌ キャンセル"):
+                st.session_state.edit_index = None
+                st.session_state.current_page = 'task_list'
+                st.rerun()
+    
+    with col2:
+        # 右半分は空にするか、必要に応じて他のコンテンツを配置
+        st.empty()
+
+def delete_task_page():
+    """タスク削除確認"""
+    # 左半分にコンテンツを表示
+    col1, col2 = st.columns([1, 1])
+    
+    with col1:
+        st.title('🗑️ タスク削除')
+        
+        if "edit_index" not in st.session_state or st.session_state.edit_index is None:
+            st.error("削除するタスクが選択されていません")
+            if st.button('← 一覧に戻る'):
+                st.session_state.current_page = 'task_list'
+                st.rerun()
+            return
+        
+        # 削除対象のタスクを取得
+        delete_event = st.session_state.events[st.session_state.edit_index]
+        
+        # 終了時刻から日付と時刻を分離
+        end_datetime = datetime.datetime.fromisoformat(delete_event['end'])
+        date_str = end_datetime.strftime('%Y年%m月%d日')
+        time_str = end_datetime.strftime('%H:%M')
+        
+        # 確認画面のスタイル
+        st.markdown(f"""
+        <div style="
+            background: linear-gradient(135deg, #ff6b6b 0%, #feca57 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+            border: 2px solid #ff6b6b;
+            text-align: center;
+        ">
+            <h2 style="margin-top: 0; color: white;">⚠️ このタスクを削除しますか？</h2>
+            <div style="background: rgba(255, 255, 255, 0.2); padding: 20px; border-radius: 10px; margin: 20px 0;">
+                <div style="font-size: 20px; margin: 15px 0;">
+                    <strong>📅 日付:</strong> {date_str}
+                </div>
+                <div style="font-size: 20px; margin: 15px 0;">
+                    <strong>📋 タスク名:</strong> {delete_event['title']}
+                </div>
+                <div style="font-size: 20px; margin: 15px 0;">
+                    <strong>🕐 終了時刻:</strong> {time_str}
+                </div>
+            </div>
+            <p style="font-size: 16px; opacity: 0.9; margin-bottom: 0;">
+                ※ 削除したタスクは元に戻せません
+            </p>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        # 削除とキャンセルボタン
+        button_col1, button_col2 = st.columns(2)
+        
+        with button_col1:
+            if st.button("🗑️ 削除", type="primary", use_container_width=True):
+                # タスクを削除
+                deleted_task_title = st.session_state.events[st.session_state.edit_index]['title']
+                st.session_state.events.pop(st.session_state.edit_index)
                 
-                st.session_state.events[st.session_state.edit_index] = updated_event
-                st.success("✅ タスクを更新しました！")
+                # 削除メッセージを設定
+                st.session_state.done_message = f"🗑️「{deleted_task_title}」を削除しました"
                 
                 # 編集状態をクリア
                 st.session_state.edit_index = None
                 st.session_state.current_page = 'task_list'
                 st.rerun()
-            else:
-                st.error("❌ 正しいタスク名を入力してください。")
+        
+        with button_col2:
+            if st.button("❌ キャンセル", use_container_width=True):
+                st.session_state.edit_index = None
+                st.session_state.current_page = 'task_list'
+                st.rerun()
     
     with col2:
-        if st.button("❌ キャンセル"):
-            st.session_state.edit_index = None
-            st.session_state.current_page = 'task_list'
-            st.rerun()
-
+        # 右半分は空にするか、必要に応じて他のコンテンツを配置
+        st.empty()
 
 
 def task_list_page():
     """タスク一覧"""
-    st.title('📋 タスク一覧')
+    # メインタイトルとメニューに戻るボタンを横並びで配置
+    title_col, button_col = st.columns([6, 1])
+    with title_col:
+        st.title('📋 タスク一覧')
+    with button_col:
+        st.write("")
+        st.write("")
+        if st.button('← メニューに戻る'):
+            if "done_message" in st.session_state:
+                del st.session_state["done_message"]
+
+            st.session_state.current_page = 'main'
+            st.rerun()
+    st.markdown("---")
 
     # 完了メッセージの表示（ページ上部）
     if "done_message" in st.session_state:
@@ -696,7 +801,7 @@ def task_list_page():
         st.info("タスクがありません")
     else:
         for i, event in enumerate(st.session_state.events):
-            col1, col2, col3 = st.columns([6, 1, 1])  # タイトル + 編集 + 完了
+            col1, col2, col3, col4 = st.columns([6, 1, 1, 1])  # タイトル + 編集 + 完了
 
             with col1:
                 st.markdown(f"""
@@ -724,14 +829,11 @@ def task_list_page():
                     st.session_state.done_message = f"✅「{event['title']}」を完了しました！お疲れ様！"
                     st.rerun()
 
-                
-    if st.button('← メニューに戻る'):
-        if "done_message" in st.session_state:
-            del st.session_state["done_message"]
-
-        st.session_state.current_page = 'main'
-        st.rerun()
-
+            with col4:
+                if st.button("❌", key=f"delete_{event['id']}"):
+                    st.session_state.current_page = 'delete_task'
+                    st.session_state.edit_index = i
+                    st.rerun()
 
 
 # ページルーティング
@@ -749,3 +851,5 @@ elif st.session_state.current_page == 'help':
     help_page()
 elif st.session_state.current_page == 'change_task':
     change_task_page()
+elif st.session_state.current_page == 'delete_task':
+    delete_task_page()
