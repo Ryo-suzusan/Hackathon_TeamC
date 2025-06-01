@@ -663,6 +663,59 @@ def add_tasks_page():
         st.session_state.current_page = 'main'
         st.rerun()
 
+def change_task_page():
+    """タスク編集"""
+    st.title('✏️ タスク編集')
+    
+    if "edit_index" not in st.session_state or st.session_state.edit_index is None:
+        st.error("編集するタスクが選択されていません")
+        if st.button('← 一覧に戻る'):
+            st.session_state.current_page = 'task_list'
+            st.rerun()
+        return
+    
+    # 編集対象のタスクを取得
+    edit_event = st.session_state.events[st.session_state.edit_index]
+    
+    # 編集フォーム
+    title = st.text_input("タスク名", value=edit_event['title'])
+    # 既存の終了時刻から日付と時刻を分離
+    end_datetime = datetime.datetime.fromisoformat(edit_event['end'])
+    
+    event_date = st.date_input("日付", value=end_datetime.date())
+    end_time = st.time_input("終了時刻", value=end_datetime.time())
+    
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        if st.button("💾 保存"):
+            if title.strip():
+                # タスクを更新
+                updated_event = {
+                    "id": edit_event['id'],
+                    "title": title.strip(),
+                    "start": edit_event['start'],
+                    "end": datetime.datetime.combine(event_date, end_time).isoformat(),
+                }
+                
+                st.session_state.events[st.session_state.edit_index] = updated_event
+                st.success("✅ タスクを更新しました！")
+                
+                # 編集状態をクリア
+                st.session_state.edit_index = None
+                st.session_state.current_page = 'task_list'
+                st.rerun()
+            else:
+                st.error("❌ 正しいタスク名を入力してください。")
+    
+    with col2:
+        if st.button("❌ キャンセル"):
+            st.session_state.edit_index = None
+            st.session_state.current_page = 'task_list'
+            st.rerun()
+
+
+
 def task_list_page():
     """タスク一覧"""
     st.title('📋 タスク一覧')
@@ -701,7 +754,7 @@ def task_list_page():
 
             with col2:
                 if st.button("✏️", key=f"edit_{event['id']}"):
-                    # 編集処理
+                    st.session_state.current_page = 'change_task'
                     st.session_state.edit_index = i  # 例: 編集対象を保存
                     st.rerun()
 
@@ -719,6 +772,8 @@ def task_list_page():
         st.session_state.current_page = 'main'
         st.rerun()
 
+
+
 # ページルーティング
 if st.session_state.current_page == 'main':
     main_page()
@@ -732,3 +787,5 @@ elif st.session_state.current_page == 'statistics':
     statistics_page()
 elif st.session_state.current_page == 'help':
     help_page()
+elif st.session_state.current_page == 'change_task':
+    change_task_page()
