@@ -4,6 +4,8 @@ import datetime
 import uuid
 import base64
 import streamlit.components.v1 as stc
+from pathlib import Path
+
 
 # セッション状態の初期化
 if 'current_page' not in st.session_state:
@@ -27,10 +29,61 @@ def get_base64_bg(file_path):
     with open(file_path, "rb") as f:
         data = f.read()
     return base64.b64encode(data).decode()
+def get_base64_image(image_path):
+    """画像をbase64エンコードする関数"""
+    try:
+        with open(image_path, "rb") as img_file:
+            return base64.b64encode(img_file.read()).decode()
+    except FileNotFoundError:
+        st.error(f"画像ファイルが見つかりません: {image_path}")
+        return None
 
 # 画像のパス
 image_path = "MyPet/bg_natural_flower.jpg"
 encoded_img = get_base64_bg(image_path)
+
+def create_image_button(image_path, button_key, width, height):
+    """イラストボタンを作成する関数"""
+    
+    # 画像をbase64エンコード
+    img_base64 = get_base64_image(image_path)
+    
+    if img_base64 is None:
+        return False
+    
+    # CSSスタイルを定義
+    button_style = f"""
+    <style>
+    .custom-button-{button_key} {{
+        background-image: url('data:image/png;base64,{img_base64}');
+        background-size: cover;
+        background-repeat: no-repeat;
+        background-position: center;
+        border: none;
+        border-radius: 10px;
+        width: {width}px;
+        height: {height}px;
+        cursor: pointer;
+        transition: transform 0.2s;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    }}
+    
+    .custom-button-{button_key}:hover {{
+        transform: scale(1.05);
+        box-shadow: 0 6px 12px rgba(0,0,0,0.3);
+    }}
+    
+    .custom-button-{button_key}:active {{
+        transform: scale(0.95);
+    }}
+    </style>
+    """
+    
+    # CSSを適用
+    st.markdown(button_style, unsafe_allow_html=True)
+    
+    # 空のボタンを作成（見た目はCSSで制御）
+    return st.button("", key=button_key, help="クリックしてください")
 
 # 背景スタイルを設定
 st.markdown(
@@ -94,6 +147,7 @@ with col2:
 def main_page():
     """メインページ（育成画面）"""
     st.title('育成')
+    button_path = "MyPet/esa_button.png"
     
     # 他のボタンも追加可能
     col1, col2, col3 = st.columns(3)
@@ -108,7 +162,7 @@ def main_page():
             st.rerun()
 
     with col3:
-        if st.button('エサ箱'):
+        if create_image_button(button_path, 'エサ箱', width=120, height=120):
             st.session_state.current_page = 'feed_box'
             st.rerun()
 

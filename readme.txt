@@ -1,6 +1,7 @@
 ・使い方
-「pip install streamlit」
-「pip install streamlit-calendar」
+1.カレントディレクトリをHackathon_TeamC
+
+2.「pip install streamlit」「pip install streamlit-calendar」
 を実行の上、
 「」
 を実行してください
