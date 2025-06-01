@@ -764,6 +764,10 @@ def task_list_page():
                     st.session_state.done_message = f"✅「{event['title']}」を完了しました！お疲れ様！"
                     st.rerun()
 
+            with col4:
+                if st.button("x", key=f"delete_{event['id']}"):
+                    
+
                 
     if st.button('← メニューに戻る'):
         if "done_message" in st.session_state:
