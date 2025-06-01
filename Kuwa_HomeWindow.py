@@ -51,8 +51,6 @@ col1, col2 = st.columns(2)  # 2列のコンテナを用意する
 with col1:
     #画面左
     # オプションを指定
-    #画面左
-    # オプションを指定
     options = {
     'initialView': 'dayGridMonth',
     'headerToolbar': {
@@ -285,7 +283,7 @@ def add_tasks_page():
     left_col, right_col = st.columns([1, 1])
 
     with left_col:
-        st.subheader("📝 イベント追加")
+        st.subheader("📝 タスク追加")
 
         # 選択中の日付をデフォルトに
         event_date = st.date_input("日付", st.session_state.selected_date, key="event_date_input")
@@ -294,7 +292,7 @@ def add_tasks_page():
             st.session_state.selected_date = event_date
             st.rerun()
         
-        title = st.text_input("イベント名")
+        title = st.text_input("タスク名")
         end_time = st.time_input("終了時刻")
 
         if st.button("➕ 追加"):
@@ -308,12 +306,12 @@ def add_tasks_page():
                 }
                 
                 st.session_state.events.append(new_event)
-                st.success("✅ イベントを追加しました！")
+                st.success("✅ タスクを追加しました！")
                 st.rerun()
             else:
-                st.error("❌ 正しいイベント名を入力してください。")
+                st.error("❌ 正しいタスク名を入力してください。")
 
-        st.subheader(f"📅 {st.session_state.selected_date.strftime('%Y年%m月%d日')} の予定")
+        st.subheader(f"📅 {st.session_state.selected_date.strftime('%Y年%m月%d日')} が期限のタスク")
 
         daily_events = get_events_for_date(st.session_state.events, st.session_state.selected_date)
 
@@ -340,7 +338,7 @@ def add_tasks_page():
                     </div>
                     """, unsafe_allow_html=True)
         else:
-            st.info("この日に予定はありません。")
+            st.info("この日が期限のタスクはありません。")
 
     if st.button('← メニューに戻る'):
         st.session_state.current_page = 'main'
@@ -358,20 +356,35 @@ def task_list_page():
         #key=f"text_area_{event['id']}"  # 一意なkeyを使用
         #st.metric(event["title"], event["start"], event["end"])
 
-    for event in st.session_state.events:
-        st.markdown(f"""
-        <div style="
-            background-color: #f0f2f6;
-            padding: 15px;
-            border-radius: 10px;
-            margin-bottom: 10px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-        ">
-            <strong>{event['title']}</strong><br>
-            🕒 {event['start']} 〜 {event['end']}
-        </div>
-        """, unsafe_allow_html=True)
-    
+    if not st.session_state.events:
+        st.info("タスクがありません")
+    else:
+        for event in st.session_state.events:
+            col1, col2, col3 = st.columns([6, 1, 1])  # タイトル + 編集 + 完了
+            with col1:
+                st.markdown(f"""
+                <div style="
+                    background-color: #f0f2f6;
+                    padding: 15px;
+                    border-radius: 10px;
+                    margin-bottom: 10px;
+                    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+                ">
+                    <strong>{event['title']}</strong><br>
+                    🕒 {event['start']} 〜 {event['end']}
+                </div>
+                """, unsafe_allow_html=True)
+
+            with col2:
+                if st.button("✏️", key=f"edit_{i}"):
+                    #編集する奴
+                    st.rerun()
+
+            with col3:
+                if st.button("✅", key=f"done_{i}"):
+                    st.session_state.events.pop(i)
+                    st.rerun()
+                
     if st.button('← メニューに戻る'):
         st.session_state.current_page = 'main'
         st.rerun()
