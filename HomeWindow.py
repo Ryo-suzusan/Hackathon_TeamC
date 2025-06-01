@@ -613,55 +613,142 @@ def add_tasks_page():
 
 def change_task_page():
     """タスク編集"""
-    st.title('✏️ タスク編集')
-    
-    if "edit_index" not in st.session_state or st.session_state.edit_index is None:
-        st.error("編集するタスクが選択されていません")
-        if st.button('← 一覧に戻る'):
-            st.session_state.current_page = 'task_list'
-            st.rerun()
-        return
-    
-    # 編集対象のタスクを取得
-    edit_event = st.session_state.events[st.session_state.edit_index]
-    
-    # 編集フォーム
-    title = st.text_input("タスク名", value=edit_event['title'])
-    # 既存の終了時刻から日付と時刻を分離
-    end_datetime = datetime.datetime.fromisoformat(edit_event['end'])
-    
-    event_date = st.date_input("日付", value=end_datetime.date())
-    end_time = st.time_input("終了時刻", value=end_datetime.time())
-    
-    col1, col2 = st.columns(2)
+    # 左半分にコンテンツを表示
+    col1, col2 = st.columns([1, 1])
     
     with col1:
-        if st.button("💾 保存"):
-            if title.strip():
-                # タスクを更新
-                updated_event = {
-                    "id": edit_event['id'],
-                    "title": title.strip(),
-                    "start": edit_event['start'],
-                    "end": datetime.datetime.combine(event_date, end_time).isoformat(),
-                }
+        st.title('✏️ タスク編集')
+        
+        if "edit_index" not in st.session_state or st.session_state.edit_index is None:
+            st.error("編集するタスクが選択されていません")
+            if st.button('← 一覧に戻る'):
+                st.session_state.current_page = 'task_list'
+                st.rerun()
+            return
+        
+        # 編集対象のタスクを取得
+        edit_event = st.session_state.events[st.session_state.edit_index]
+        
+        # 編集フォーム
+        title = st.text_input("タスク名", value=edit_event['title'])
+        # 既存の終了時刻から日付と時刻を分離
+        end_datetime = datetime.datetime.fromisoformat(edit_event['end'])
+        
+        event_date = st.date_input("日付", value=end_datetime.date())
+        end_time = st.time_input("終了時刻", value=end_datetime.time())
+        
+        button_col1, button_col2 = st.columns(2)
+        
+        with button_col1:
+            if st.button("💾 保存"):
+                if title.strip():
+                    # タスクを更新
+                    updated_event = {
+                        "id": edit_event['id'],
+                        "title": title.strip(),
+                        "start": edit_event['start'],
+                        "end": datetime.datetime.combine(event_date, end_time).isoformat(),
+                    }
+                    
+                    st.session_state.events[st.session_state.edit_index] = updated_event
+                    st.success("✅ タスクを更新しました！")
+                    
+                    # 編集状態をクリア
+                    st.session_state.edit_index = None
+                    st.session_state.current_page = 'task_list'
+                    st.rerun()
+                else:
+                    st.error("❌ 正しいタスク名を入力してください。")
+        
+        with button_col2:
+            if st.button("❌ キャンセル"):
+                st.session_state.edit_index = None
+                st.session_state.current_page = 'task_list'
+                st.rerun()
+    
+    with col2:
+        # 右半分は空にするか、必要に応じて他のコンテンツを配置
+        st.empty()
+
+def delete_task_page():
+    """タスク削除確認"""
+    # 左半分にコンテンツを表示
+    col1, col2 = st.columns([1, 1])
+    
+    with col1:
+        st.title('🗑️ タスク削除')
+        
+        if "edit_index" not in st.session_state or st.session_state.edit_index is None:
+            st.error("削除するタスクが選択されていません")
+            if st.button('← 一覧に戻る'):
+                st.session_state.current_page = 'task_list'
+                st.rerun()
+            return
+        
+        # 削除対象のタスクを取得
+        delete_event = st.session_state.events[st.session_state.edit_index]
+        
+        # 終了時刻から日付と時刻を分離
+        end_datetime = datetime.datetime.fromisoformat(delete_event['end'])
+        date_str = end_datetime.strftime('%Y年%m月%d日')
+        time_str = end_datetime.strftime('%H:%M')
+        
+        # 確認画面のスタイル
+        st.markdown(f"""
+        <div style="
+            background: linear-gradient(135deg, #ff6b6b 0%, #feca57 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+            border: 2px solid #ff6b6b;
+            text-align: center;
+        ">
+            <h2 style="margin-top: 0; color: white;">⚠️ このタスクを削除しますか？</h2>
+            <div style="background: rgba(255, 255, 255, 0.2); padding: 20px; border-radius: 10px; margin: 20px 0;">
+                <div style="font-size: 20px; margin: 15px 0;">
+                    <strong>📅 日付:</strong> {date_str}
+                </div>
+                <div style="font-size: 20px; margin: 15px 0;">
+                    <strong>📋 タスク名:</strong> {delete_event['title']}
+                </div>
+                <div style="font-size: 20px; margin: 15px 0;">
+                    <strong>🕐 終了時刻:</strong> {time_str}
+                </div>
+            </div>
+            <p style="font-size: 16px; opacity: 0.9; margin-bottom: 0;">
+                ※ 削除したタスクは元に戻せません
+            </p>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        # 削除とキャンセルボタン
+        button_col1, button_col2 = st.columns(2)
+        
+        with button_col1:
+            if st.button("🗑️ 削除", type="primary", use_container_width=True):
+                # タスクを削除
+                deleted_task_title = st.session_state.events[st.session_state.edit_index]['title']
+                st.session_state.events.pop(st.session_state.edit_index)
                 
-                st.session_state.events[st.session_state.edit_index] = updated_event
-                st.success("✅ タスクを更新しました！")
+                # 削除メッセージを設定
+                st.session_state.done_message = f"🗑️「{deleted_task_title}」を削除しました"
                 
                 # 編集状態をクリア
                 st.session_state.edit_index = None
                 st.session_state.current_page = 'task_list'
                 st.rerun()
-            else:
-                st.error("❌ 正しいタスク名を入力してください。")
+        
+        with button_col2:
+            if st.button("❌ キャンセル", use_container_width=True):
+                st.session_state.edit_index = None
+                st.session_state.current_page = 'task_list'
+                st.rerun()
     
     with col2:
-        if st.button("❌ キャンセル"):
-            st.session_state.edit_index = None
-            st.session_state.current_page = 'task_list'
-            st.rerun()
-
+        # 右半分は空にするか、必要に応じて他のコンテンツを配置
+        st.empty()
 
 
 def task_list_page():
@@ -713,7 +800,10 @@ def task_list_page():
                     st.rerun()
 
             with col4:
-                if st.button("x", key=f"delete_{event['id']}"):
+                if st.button("❌", key=f"delete_{event['id']}"):
+                    st.session_state.current_page = 'delete_task'
+                    st.session_state.edit_index = i
+                    st.rerun()
 
 
                 
@@ -741,3 +831,5 @@ elif st.session_state.current_page == 'help':
     help_page()
 elif st.session_state.current_page == 'change_task':
     change_task_page()
+elif st.session_state.current_page == 'delete_task':
+    delete_task_page()
