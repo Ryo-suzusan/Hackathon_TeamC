@@ -738,7 +738,13 @@ def task_list_page():
         for i, event in enumerate(st.session_state.events):
             col1, col2, col3 = st.columns([6, 1, 1])  # タイトル + 編集 + 完了
 
+            starttime = datetime.datetime.fromisoformat(event["start"])
+            endtime = datetime.datetime.fromisoformat(event["end"])
+            formatted_start = starttime.strftime("%Y年%m月%d日 %H時%M分")
+            formatted_end = endtime.strftime("%Y年%m月%d日 %H時%M分")
+
             with col1:
+                status = "⏰ <span style='color:red;'>期限切れ</span>" if endtime <= datetime.datetime.now() else ""
                 st.markdown(f"""
                 <div style="
                     background-color: #f0f2f6;
@@ -748,21 +754,28 @@ def task_list_page():
                     box-shadow: 0 4px 6px rgba(0,0,0,0.1);
                 ">
                     <strong>{event['title']}</strong><br>
-                    🕒 {event['start']} 〜 {event['end']}
+                    🕒 {formatted_start} 〜 {formatted_end}
+                    {status}
                 </div>
                 """, unsafe_allow_html=True)
 
             with col2:
-                if st.button("✏️", key=f"edit_{event['id']}"):
+                if st.button("✏️編集", key=f"edit_{event['id']}"):
                     st.session_state.current_page = 'change_task'
                     st.session_state.edit_index = i  # 例: 編集対象を保存
                     st.rerun()
 
-            with col3:  
-                if st.button("✅", key=f"done_{event['id']}"):
+            with col3:
+                if endtime < datetime.datetime.now():
+                    if st.button("🕒 期限切れとして削除", key=f"expire_{event['id']}"):
+                        st.session_state.events.pop(i)
+                        st.session_state.done_message = f"⌛「{event['title']}」は期限切れとして削除しました。"
+                        st.rerun()
+                elif st.button("✅完了", key=f"done_{event['id']}"):
                     st.session_state.events.pop(i)
                     st.session_state.done_message = f"✅「{event['title']}」を完了しました！お疲れ様！"
                     st.rerun()
+
 
                 
     if st.button('← メニューに戻る'):
