@@ -237,7 +237,16 @@ def main_page():
 
 def statistics_page():
     """統計ページ"""
-    st.title("📊 統計")
+    # メインタイトルとメニューに戻るボタンを横並びで配置
+    title_col, button_col = st.columns([6, 1])
+    with title_col:
+        st.title("📊 統計")
+    with button_col:
+        st.write("")
+        st.write("")
+        if st.button('← メニューに戻る', key="back_to_menu_top"):
+            st.session_state.current_page = 'main'
+            st.rerun()
     st.markdown("---")
     
     col1, col2 = st.columns(2)
@@ -273,14 +282,20 @@ def statistics_page():
             st.write(f"• {log}")
     else:
         st.info("まだ餌やりの記録がありません")
-    
-    if st.button('← メニューに戻る'):
-        st.session_state.current_page = 'main'
-        st.rerun()
+
 
 def help_page():
     """ヘルプページ"""
-    st.title("❓ ヘルプ")
+    # メインタイトルとメニューに戻るボタンを横並びで配置
+    title_col, button_col = st.columns([6, 1])
+    with title_col:
+        st.title("❓ ヘルプ")
+    with button_col:
+        st.write("")
+        st.write("")
+        if st.button('← メニューに戻る', key="back_to_menu_top"):
+            st.session_state.current_page = 'main'
+            st.rerun()
     st.markdown("---")
     
     st.subheader("🐾 育てて達成！マイペットについて")
@@ -317,9 +332,6 @@ def help_page():
         - 最近の活動履歴
         """)
     
-    if st.button('← メニューに戻る'):
-        st.session_state.current_page = 'main'
-        st.rerun()
 
 def feed_box_page():
     """エサ箱ページ"""
@@ -377,8 +389,16 @@ def feed_box_page():
         """確認ダイアログを表示"""
         st.session_state.confirm_feed = feed_name
 
-    # メインタイトル
-    st.title("🐾 餌やりコーナー")
+    # メインタイトルとメニューに戻るボタンを横並びで配置
+    title_col, button_col = st.columns([6, 1])
+    with title_col:
+        st.title("🐾 餌やりコーナー")
+    with button_col:
+        st.write("")
+        st.write("")
+        if st.button('← メニューに戻る', key="back_to_menu_top"):
+            st.session_state.current_page = 'main'
+            st.rerun()
     st.markdown("---")
 
     # 餌の在庫表示と餌やりボタン
@@ -445,9 +465,6 @@ def feed_box_page():
         for i, log in enumerate(reversed(recent_logs)):
             st.write(f"{len(recent_logs) - i}. {log}")
     
-    if st.button('← メニューに戻る'):
-        st.session_state.current_page = 'main'
-        st.rerun()
 
 def add_tasks_page():
     """タスク追加"""
@@ -542,8 +559,15 @@ def add_tasks_page():
                     st.rerun()
         
         else:
-            # 通常のタスク追加フォーム
-            st.subheader("📝 タスク追加")
+            # サブヘッダーとボタンを横並びで配置
+            header_col, btn_col = st.columns([2.4, 1])
+            with header_col:
+                st.subheader("📝 タスク追加")
+            with btn_col:
+                st.write("")
+                if st.button('← メニューに戻る'):
+                    st.session_state.current_page = 'main'
+                    st.rerun()
 
             # 選択中の日付をデフォルトに
             event_date = st.date_input("日付", st.session_state.selected_date, key="event_date_input")
@@ -607,9 +631,6 @@ def add_tasks_page():
     with right_col:
         st.empty()  # 右側は空にしておく
 
-    if st.button('← メニューに戻る'):
-        st.session_state.current_page = 'main'
-        st.rerun()
 
 def change_task_page():
     """タスク編集"""
@@ -753,7 +774,20 @@ def delete_task_page():
 
 def task_list_page():
     """タスク一覧"""
-    st.title('📋 タスク一覧')
+    # メインタイトルとメニューに戻るボタンを横並びで配置
+    title_col, button_col = st.columns([6, 1])
+    with title_col:
+        st.title('📋 タスク一覧')
+    with button_col:
+        st.write("")
+        st.write("")
+        if st.button('← メニューに戻る'):
+            if "done_message" in st.session_state:
+                del st.session_state["done_message"]
+
+            st.session_state.current_page = 'main'
+            st.rerun()
+    st.markdown("---")
 
     # 完了メッセージの表示（ページ上部）
     if "done_message" in st.session_state:
@@ -804,16 +838,6 @@ def task_list_page():
                     st.session_state.current_page = 'delete_task'
                     st.session_state.edit_index = i
                     st.rerun()
-
-
-                
-    if st.button('← メニューに戻る'):
-        if "done_message" in st.session_state:
-            del st.session_state["done_message"]
-
-        st.session_state.current_page = 'main'
-        st.rerun()
-
 
 
 # ページルーティング
