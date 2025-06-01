@@ -363,6 +363,84 @@ def help_page():
         - タスクと餌やりの統計
         - 最近の活動履歴
         """)
+
+    st.markdown("---")
+    st.subheader("🔄 データ管理")
+    
+    # 警告メッセージ
+    st.warning("⚠️ 以下の操作は取り消すことができません。慎重に実行してください。")
+    
+    # 初期化確認の状態管理
+    if 'show_reset_confirmation' not in st.session_state:
+        st.session_state.show_reset_confirmation = False
+    
+    if not st.session_state.show_reset_confirmation:
+        # 初期化ボタン
+        if st.button("🗑️ 全データを初期化", type="secondary"):
+            st.session_state.show_reset_confirmation = True
+            st.rerun()
+    else:
+        # 確認画面
+        st.markdown("""
+        <div style="
+            background: linear-gradient(135deg, #ff6b6b 0%, #feca57 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+            text-align: center;
+        ">
+            <h3 style="margin-top: 0;">⚠️ 本当に全データを初期化しますか？</h3>
+            <p style="margin-bottom: 0; font-size: 16px;">
+                以下のデータがすべて削除されます：<br>
+                • ペットのレベルとエネルギー<br>
+                • エサの在庫と餌やり履歴<br>
+                • すべてのタスク
+            </p>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            if st.button("🗑️ はい、初期化する", type="primary", use_container_width=True):
+                # 全データを初期化
+                st.session_state.energy = 0
+                st.session_state.level = 0
+                st.session_state.events = []
+                st.session_state.feed_inventory = {
+                    "野菜": {"count": 15, "icon": "🥕", "rank": 1},
+                    "果物": {"count": 12, "icon": "🍎", "rank": 2},
+                    "肉": {"count": 8, "icon": "🍖", "rank": 5},
+                    "特上肉": {"count": 3, "icon": "🥩", "rank": 10}
+                }
+                st.session_state.feeding_log = []
+                
+                # 永続化データも削除
+                try:
+                    import os
+                    if os.path.exists('game_data.json'):
+                        os.remove('game_data.json')
+                except:
+                    pass
+                
+                # 確認画面を閉じる
+                st.session_state.show_reset_confirmation = False
+                
+                st.success("✅ 全データを初期化しました！")
+                st.balloons()
+                
+                # 3秒後にメイン画面に戻る
+                import time
+                time.sleep(3)
+                st.session_state.current_page = 'main'
+                st.rerun()
+        
+        with col2:
+            if st.button("❌ キャンセル", use_container_width=True):
+                st.session_state.show_reset_confirmation = False
+                st.rerun()
     
 
 def feed_box_page():
