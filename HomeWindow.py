@@ -3,6 +3,7 @@ import streamlit_calendar as st_calendar
 import datetime
 import uuid
 import base64
+import streamlit.components.v1 as stc
 
 # セッション状態の初期化
 if 'current_page' not in st.session_state:
@@ -62,8 +63,16 @@ with col1:
         write_calendar(st.session_state.events)
 
 with col2:
-        #画面右
-    st.image("MyPet/1.png")
+    #画面右
+    file_ = open("MyPet/1.gif", "rb")
+    contents = file_.read()
+    data_url = base64.b64encode(contents).decode("utf-8")
+    file_.close()
+
+    st.markdown(
+        f'<img src="data:image/gif;base64,{data_url}" alt="cat gif">',
+        unsafe_allow_html=True,
+        )
 
 def main_page():
     """メインページ（育成画面）"""
