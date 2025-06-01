@@ -12,7 +12,10 @@ if 'current_page' not in st.session_state:
 if 'energy' not in st.session_state:
     st.session_state.energy = 0
 
-levelup = 20
+if 'level' not in st.session_state:
+    st.session_state.level = 0
+
+levelup = [20, 40, 60, 80]
 
 # ページ設定
 st.set_page_config(
@@ -64,10 +67,26 @@ with col1:
 
 with col2:
     #画面右
-    file_ = open("MyPet/1.gif", "rb")
-    contents = file_.read()
-    data_url = base64.b64encode(contents).decode("utf-8")
-    file_.close()
+    if st.session_state.level == 0:
+        file_ = open("MyPet/Idle0.gif", "rb")
+        contents = file_.read()
+        data_url = base64.b64encode(contents).decode("utf-8")
+        file_.close()
+    elif st.session_state.level == 1:
+        file_ = open("MyPet/Idle1.gif", "rb")
+        contents = file_.read()
+        data_url = base64.b64encode(contents).decode("utf-8")
+        file_.close()
+    elif st.session_state.level == 2:
+        file_ = open("MyPet/Idle2.gif", "rb")
+        contents = file_.read()
+        data_url = base64.b64encode(contents).decode("utf-8")
+        file_.close()
+    elif st.session_state.level == 3:
+        file_ = open("MyPet/Idle2.gif", "rb")
+        contents = file_.read()
+        data_url = base64.b64encode(contents).decode("utf-8")
+        file_.close()
 
     st.markdown(
         f'<img src="data:image/gif;base64,{data_url}" alt="cat gif">',
@@ -511,6 +530,6 @@ elif st.session_state.current_page == 'task_list':
     task_list_page()
 
 # プログレスバー
-st.subheader("エネルギー")
-st.progress(st.session_state.energy / levelup)
-st.write(f"レベルアップまで: {st.session_state.energy}/{levelup}")
+st.subheader(f"Lv.{st.session_state.level}")
+st.progress(st.session_state.energy / levelup[st.session_state.level + 1])
+st.write(f"レベルアップまで: {st.session_state.energy}/{levelup[st.session_state.level]}")
