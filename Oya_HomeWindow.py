@@ -363,7 +363,6 @@ def feed_box_page():
     # セッション状態の初期化
     if 'feed_inventory' not in st.session_state:
         st.session_state.feed_inventory = {
-            #あとでHomeWindow.pyに修正
             "魚": {"count": 10, "icon": "🐟", "rank": 1},
             "肉": {"count": 8, "icon": "🍖", "rank": 2},
             "野菜": {"count": 15, "icon": "🥕", "rank": 3},
@@ -377,7 +376,10 @@ def feed_box_page():
     if 'confirm_feed' not in st.session_state:
         st.session_state.confirm_feed = None
 
-    #あとでHomeWindow.pyに修正
+    #あとでHomeWindow.pyに追加
+    if 'show_feed_result' not in st.session_state:
+        st.session_state.show_feed_result = False
+
     def feed_pet(feed_name):
         """ペットに餌を与える処理"""
         if st.session_state.feed_inventory[feed_name]["count"] > 0:
@@ -389,6 +391,8 @@ def feed_box_page():
 
             # 餌のランクに応じてエネルギーを増加
             st.session_state.energy += rank
+            #あとでHomeWindow.pyに追加
+            st.session_state.show_feed_result = True
         
             if st.session_state.energy < levelup:
                 st.image("MyPet/0.png")
@@ -430,7 +434,7 @@ def feed_box_page():
             ):
                 show_confirmation_dialog(feed_name)
 
-    # 確認ダイアログ(あとでHomeWindow.pyに修正)
+    # 確認ダイアログ
     if st.session_state.confirm_feed:
         feed_name = st.session_state.confirm_feed
         feed_icon = st.session_state.feed_inventory[feed_name]["icon"]
@@ -450,6 +454,9 @@ def feed_box_page():
                     # 3秒後に更新
                     import time
                     time.sleep(3)
+                    #下2行HomeWindow.pyに追加
+                    st.session_state.confirm_feed = None
+                    st.session_state.show_feed_result = False
                     st.rerun()
             with col_cancel:
                 if st.button("❌ キャンセル", use_container_width=True):
