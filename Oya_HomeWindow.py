@@ -52,24 +52,7 @@ with col1:
     #画面左
     # オプションを指定
     options = {
-    'initialView': 'dayGridMonth',
-    'headerToolbar': {
-        'left': 'today prev,next',
-        'center': 'title',
-        'right': 'dayGridMonth,timeGridWeek,listWeek',
-    },
-    'titleFormat': {
-            'year': 'numeric', 'month': '2-digit', 'day': '2-digit'
-        },
-        'buttonText': {
-            'today': '今日',
-            'month': '月ごと',
-            'week': '週ごと',
-            'day': '日ごと',
-            'list': 'リスト'
-        },
-        'locale': 'ja', # 日本語化する
-        'firstDay': '1', # 週の最初を月曜日(1)にする。デフォルトは日曜日(0)
+        'initialView': 'dayGridMonth'
     }
     def write_calendar(event_list):# イベントを表示するカレンダーを作成
         st_calendar.calendar(events = event_list, options = options)
