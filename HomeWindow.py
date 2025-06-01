@@ -684,7 +684,7 @@ def task_list_page():
         st.info("タスクがありません")
     else:
         for i, event in enumerate(st.session_state.events):
-            col1, col2, col3 = st.columns([6, 1, 1])  # タイトル + 編集 + 完了
+            col1, col2, col3, col4 = st.columns([6, 1, 1, 1])  # タイトル + 編集 + 完了
 
             with col1:
                 st.markdown(f"""
@@ -714,7 +714,7 @@ def task_list_page():
 
             with col4:
                 if st.button("x", key=f"delete_{event['id']}"):
-                    
+
 
                 
     if st.button('← メニューに戻る'):
