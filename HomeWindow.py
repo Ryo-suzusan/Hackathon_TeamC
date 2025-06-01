@@ -244,9 +244,11 @@ def statistics_page():
     
     with col1:
         st.subheader("🎮 ゲーム統計")
+        st.metric("現在のLevel", st.session_state.level+1)
         st.metric("現在のエネルギー", st.session_state.energy)
-        progress_percentage = (st.session_state.energy / levelup) * 100
-        st.metric("レベル進捗", f"{progress_percentage:.1f}%")
+        if st.session_state.level != 3:
+            progress_percentage = (st.session_state.energy / levelup[st.session_state.level]) * 100
+            st.metric("次のレベルまでの進捗", f"{progress_percentage:.1f}%")
         
         # タスク統計
         if 'events' in st.session_state:
@@ -314,20 +316,6 @@ def help_page():
         - タスクと餌やりの統計
         - 最近の活動履歴
         """)
-    
-    with st.expander("⚙️ 設定"):
-        st.write("""
-        **設定**: ゲームの各種設定を変更
-        - レベルアップ必要エネルギーの調整
-        - データのリセット機能
-        """)
-    
-    st.subheader("💡 ヒント")
-    st.info("""
-    - 定期的にタスクを追加して、計画的に進めましょう
-    - ペットの餌やりを忘れずに！エネルギーがたまるとレベルアップします
-    - 統計画面で進捗を確認して、モチベーションを保ちましょう
-    """)
     
     if st.button('← メニューに戻る'):
         st.session_state.current_page = 'main'

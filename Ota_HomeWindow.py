@@ -183,7 +183,7 @@ with col2:
     # プログレスバー
     st.subheader(f"Lv.{st.session_state.level + 1}")
     if st.session_state.level != 3:
-        st.progress(st.session_state.energy / levelup[st.session_state.level + 1])
+        st.progress(st.session_state.energy / levelup[st.session_state.level])
         st.write(f"レベルアップまで: {levelup[st.session_state.level] - st.session_state.energy}/{levelup[st.session_state.level]}")
     else:
         st.progress(1 / 1)
