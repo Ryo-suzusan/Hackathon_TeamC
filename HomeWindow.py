@@ -411,9 +411,9 @@ def help_page():
                 st.session_state.events = []
                 st.session_state.feed_inventory = {
                     "野菜": {"count": 15, "icon": "🥕", "rank": 1},
-                    "果物": {"count": 12, "icon": "🍎", "rank": 2},
-                    "肉": {"count": 8, "icon": "🍖", "rank": 5},
-                    "特上肉": {"count": 3, "icon": "🥩", "rank": 10}
+                    "果物": {"count": 15, "icon": "🍎", "rank": 2},
+                    "肉": {"count": 15, "icon": "🍖", "rank": 5},
+                    "特上肉": {"count": 15, "icon": "🥩", "rank": 10}
                 }
                 st.session_state.feeding_log = []
                 
@@ -963,26 +963,24 @@ def task_list_page():
 
                     if 'feed_inventory' not in st.session_state:
                         st.session_state.feed_inventory = {
-                            #あとでHomeWindow.pyに修正
-                            "魚": {"count": 10, "icon": "🐟", "rank": 1},
-                            "肉": {"count": 8, "icon": "🍖", "rank": 2},
-                            "野菜": {"count": 15, "icon": "🥕", "rank": 3},
-                            "果物": {"count": 12, "icon": "🍎", "rank": 4},
-                            "特上肉": {"count": 3, "icon": "✨", "rank": 5}
+                        "野菜": {"count": 15, "icon": "🥕", "rank": 1},
+                        "果物": {"count": 15, "icon": "🍎", "rank": 2},
+                        "肉": {"count": 15, "icon": "🍖", "rank": 5},
+                        "特上肉": {"count": 15, "icon": "🥩", "rank": 10}
                         }
 
                     if rarity == 4:
                         st.session_state.feed_inventory["特上肉"]["count"] += 1
-                        st.session_state.get_message = f"「特上肉」を入手しました！"
+                        st.session_state.get_message = f"「特上肉」🥩を入手しました！"
                     elif rarity == 3:
                         st.session_state.feed_inventory["肉"]["count"] += 1
-                        st.session_state.get_message = f"「肉」を入手しました！"
+                        st.session_state.get_message = f"「肉」🍖を入手しました！"
                     elif rarity == 2:
                         st.session_state.feed_inventory["果物"]["count"] += 1
-                        st.session_state.get_message = f"「果物」を入手しました！"
+                        st.session_state.get_message = f"「果物」🍎を入手しました！"
                     else:
                         st.session_state.feed_inventory["野菜"]["count"] += 1
-                        st.session_state.get_message = f"「野菜」を入手しました！"
+                        st.session_state.get_message = f"「野菜」🥕を入手しました！"
 
 
                     st.session_state.events.pop(i)
@@ -990,7 +988,7 @@ def task_list_page():
                     st.rerun()
 
             with col4:
-                if st.button("❌", key=f"delete_{event['id']}"):
+                if st.button("❌削除", key=f"delete_{event['id']}"):
                     st.session_state.current_page = 'delete_task'
                     st.session_state.edit_index = i
                     st.rerun()
