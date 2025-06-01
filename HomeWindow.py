@@ -283,7 +283,7 @@ def add_tasks_page():
     left_col, right_col = st.columns([1, 1])
 
     with left_col:
-        st.subheader("📝 イベント追加")
+        st.subheader("📝 タスク追加")
 
         # 選択中の日付をデフォルトに
         event_date = st.date_input("日付", st.session_state.selected_date, key="event_date_input")
@@ -292,7 +292,7 @@ def add_tasks_page():
             st.session_state.selected_date = event_date
             st.rerun()
         
-        title = st.text_input("イベント名")
+        title = st.text_input("タスク名")
         end_time = st.time_input("終了時刻")
 
         if st.button("➕ 追加"):
@@ -306,12 +306,12 @@ def add_tasks_page():
                 }
                 
                 st.session_state.events.append(new_event)
-                st.success("✅ イベントを追加しました！")
+                st.success("✅ タスクを追加しました！")
                 st.rerun()
             else:
-                st.error("❌ 正しいイベント名を入力してください。")
+                st.error("❌ 正しいタスク名を入力してください。")
 
-        st.subheader(f"📅 {st.session_state.selected_date.strftime('%Y年%m月%d日')} の予定")
+        st.subheader(f"📅 {st.session_state.selected_date.strftime('%Y年%m月%d日')} が期限のタスク")
 
         daily_events = get_events_for_date(st.session_state.events, st.session_state.selected_date)
 
@@ -338,7 +338,7 @@ def add_tasks_page():
                     </div>
                     """, unsafe_allow_html=True)
         else:
-            st.info("この日に予定はありません。")
+            st.info("この日が期限のタスクはありません。")
 
     if st.button('← メニューに戻る'):
         st.session_state.current_page = 'main'
