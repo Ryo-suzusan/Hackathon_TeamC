@@ -52,7 +52,24 @@ with col1:
     #画面左
     # オプションを指定
     options = {
-        'initialView': 'dayGridMonth'
+    'initialView': 'dayGridMonth',
+    'headerToolbar': {
+        'left': 'today prev,next',
+        'center': 'title',
+        'right': 'dayGridMonth,timeGridWeek,listWeek',
+    },
+    'titleFormat': {
+            'year': 'numeric', 'month': '2-digit', 'day': '2-digit'
+        },
+        'buttonText': {
+            'today': '今日',
+            'month': '月ごと',
+            'week': '週ごと',
+            'day': '日ごと',
+            'list': 'リスト'
+        },
+        'locale': 'ja', # 日本語化する
+        'firstDay': '1', # 週の最初を月曜日(1)にする。デフォルトは日曜日(0)
     }
     def write_calendar(event_list):# イベントを表示するカレンダーを作成
         st_calendar.calendar(events = event_list, options = options)
@@ -261,46 +278,113 @@ def add_tasks_page():
 
     if "selected_date" not in st.session_state:
         st.session_state.selected_date = datetime.date.today()
+    
+    # 確認画面の状態管理
+    if "show_confirmation" not in st.session_state:
+        st.session_state.show_confirmation = False
+    
+    if "temp_task" not in st.session_state:
+        st.session_state.temp_task = {}
 
-    # 左半分にレイアウト
+    # 通常のタスク追加画面のレイアウト
     left_col, right_col = st.columns([1, 1])
 
     with left_col:
-        st.subheader("📝 イベント追加")
-
-        # 選択中の日付をデフォルトに
-        event_date = st.date_input("日付", st.session_state.selected_date, key="event_date_input")
-        # 日付が変更されたら選択日付も更新
-        if event_date != st.session_state.selected_date:
-            st.session_state.selected_date = event_date
-            st.rerun()
+        # 確認画面が表示されている場合
+        if st.session_state.show_confirmation:
+            st.subheader("🔍 タスク追加の確認")
+            
+            # 確認画面のスタイル
+            st.markdown(f"""
+            <div style="
+                background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%);
+                color: #333;
+                padding: 25px;
+                border-radius: 15px;
+                margin-bottom: 20px;
+                box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+                border: 2px solid #ff9a9e;
+            ">
+                <h3 style="margin-top: 0; color: #d63384;">📝 以下の内容で追加しますか？</h3>
+                <div style="font-size: 18px; margin: 15px 0;">
+                    <strong>📅 日付:</strong> {st.session_state.temp_task['date_str']}
+                </div>
+                <div style="font-size: 18px; margin: 15px 0;">
+                    <strong>📋 タスク名:</strong> {st.session_state.temp_task['title']}
+                </div>
+                <div style="font-size: 18px; margin: 15px 0;">
+                    <strong>🕐 終了時刻:</strong> {st.session_state.temp_task['end_time_str']}
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+            
+            # 確認とキャンセルボタン
+            conf_col1, conf_col2 = st.columns(2)
+            
+            with conf_col1:
+                if st.button("✅ 確認・追加", type="primary", use_container_width=True):
+                    # タスクを実際に追加
+                    new_event = {
+                        "id": str(uuid.uuid4()),
+                        "title": st.session_state.temp_task['title'],
+                        "end": st.session_state.temp_task['end_datetime'].isoformat(),
+                    }
+                    
+                    st.session_state.events.append(new_event)
+                    st.success("✅ タスクを追加しました！")
+                    
+                    # 確認画面を閉じる
+                    st.session_state.show_confirmation = False
+                    st.session_state.temp_task = {}
+                    st.rerun()
+            
+            with conf_col2:
+                if st.button("❌ キャンセル", use_container_width=True):
+                    # 確認画面を閉じる
+                    st.session_state.show_confirmation = False
+                    st.session_state.temp_task = {}
+                    st.rerun()
         
-        title = st.text_input("イベント名")
-        end_time = st.time_input("終了時刻")
+        else:
+            # 通常のタスク追加フォーム
+            st.subheader("📝 タスク追加")
 
-        if st.button("➕ 追加"):
-            if title.strip():
-                end_datetime = datetime.datetime.combine(event_date, end_time)
-                
-                new_event = {
-                    "id": str(uuid.uuid4()),
-                    "title": title.strip(),
-                    "end": end_datetime.isoformat(),
-                }
-                
-                st.session_state.events.append(new_event)
-                st.success("✅ イベントを追加しました！")
+            # 選択中の日付をデフォルトに
+            event_date = st.date_input("日付", st.session_state.selected_date, key="event_date_input")
+            # 日付が変更されたら選択日付も更新
+            if event_date != st.session_state.selected_date:
+                st.session_state.selected_date = event_date
                 st.rerun()
-            else:
-                st.error("❌ 正しいイベント名を入力してください。")
+            
+            title = st.text_input("タスク名")
+            end_time = st.time_input("終了時刻")
 
-        st.subheader(f"📅 {st.session_state.selected_date.strftime('%Y年%m月%d日')} の予定")
+            if st.button("➕ 追加"):
+                if title.strip():
+                    # 確認画面用の一時データを保存
+                    end_datetime = datetime.datetime.combine(event_date, end_time)
+                    
+                    st.session_state.temp_task = {
+                        "title": title.strip(),
+                        "date_str": event_date.strftime('%Y年%m月%d日'),
+                        "end_time_str": end_time.strftime('%H:%M'),
+                        "end_datetime": end_datetime
+                    }
+                    
+                    # 確認画面を表示
+                    st.session_state.show_confirmation = True
+                    st.rerun()
+                else:
+                    st.error("❌ 正しいタスク名を入力してください。")
+
+        # タスク一覧表示（確認画面でも通常画面でも表示）
+        st.subheader(f"📅 {st.session_state.selected_date.strftime('%Y年%m月%d日')} が期限のタスク")
 
         daily_events = get_events_for_date(st.session_state.events, st.session_state.selected_date)
 
         if daily_events:
             for event in daily_events:
-                end_time = format_time(event['end'])
+                end_time_display = format_time(event['end'])
                 
                 with st.container():
                     st.markdown(f"""
@@ -316,13 +400,78 @@ def add_tasks_page():
                             {event['title']}
                         </div>
                         <div style="font-size: 16px; opacity: 0.9;">
-                            🕐 {end_time}まで
+                            🕐 {end_time_display}まで
                         </div>
                     </div>
                     """, unsafe_allow_html=True)
         else:
-            st.info("この日に予定はありません。")
+            st.info("この日が期限のタスクはありません。")
 
+    # 右側のカラムは空のまま（必要に応じて他のコンテンツを追加可能）
+    with right_col:
+        st.empty()  # 右側は空にしておく
+
+    if st.button('← メニューに戻る'):
+        st.session_state.current_page = 'main'
+        st.rerun()
+
+def task_list_page():
+    """タスク一覧"""
+    st.title('📋 タスク一覧')
+
+    #eventsの初期化
+    if "events" not in st.session_state:
+        st.session_state.events = []
+
+    #for event in st.session_state.events:
+        #key=f"text_area_{event['id']}"  # 一意なkeyを使用
+        #st.metric(event["title"], event["start"], event["end"])
+
+    for event in st.session_state.events:
+        st.markdown(f"""
+        <div style="
+            background-color: #f0f2f6;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        ">
+            <strong>{event['title']}</strong><br>
+            🕒 {event['start']} 〜 {event['end']}
+        </div>
+        """, unsafe_allow_html=True)
+    
+    if st.button('← メニューに戻る'):
+        st.session_state.current_page = 'main'
+        st.rerun()
+
+
+def task_list_page():
+    """タスク一覧"""
+    st.title('📋 タスク一覧')
+
+    #eventsの初期化
+    if "events" not in st.session_state:
+        st.session_state.events = []
+
+    #for event in st.session_state.events:
+        #key=f"text_area_{event['id']}"  # 一意なkeyを使用
+        #st.metric(event["title"], event["start"], event["end"])
+
+    for event in st.session_state.events:
+        st.markdown(f"""
+        <div style="
+            background-color: #f0f2f6;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        ">
+            <strong>{event['title']}</strong><br>
+            🕒 {event['start']} 〜 {event['end']}
+        </div>
+        """, unsafe_allow_html=True)
+    
     if st.button('← メニューに戻る'):
         st.session_state.current_page = 'main'
         st.rerun()
