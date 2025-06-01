@@ -213,15 +213,10 @@ def main_page():
     
     # 第2行：追加機能
     st.subheader("🔧 その他の機能")
-    col4, col5, col6 = st.columns(3)
-    
-    with col4:
-        if create_enhanced_image_button("MyPet/settings.png", "設定", "settings_btn", width=120, height=120, fallback_emoji="⚙️"):
-            st.session_state.current_page = 'settings'
-            st.rerun()
+    col5, col6 = st.columns(2)
     
     with col5:
-        if create_enhanced_image_button("MyPet/stats.png", "統計", "stats_btn", width=120, height=120, fallback_emoji="📊"):
+        if create_enhanced_image_button("MyPet/tokei.png", "統計", "stats_btn", width=120, height=120, fallback_emoji="📊"):
             st.session_state.current_page = 'statistics'
             st.rerun()
     
@@ -229,51 +224,6 @@ def main_page():
         if create_enhanced_image_button("MyPet/help.png", "ヘルプ", "help_btn", width=120, height=120, fallback_emoji="❓"):
             st.session_state.current_page = 'help'
             st.rerun()
-
-def settings_page():
-    """設定ページ"""
-    st.title("⚙️ 設定")
-    st.markdown("---")
-    
-    st.subheader("🎮 ゲーム設定")
-    
-    # レベルアップに必要なエネルギー設定
-    global levelup
-    new_levelup = st.slider("レベルアップに必要なエネルギー", min_value=10, max_value=50, value=levelup)
-    if new_levelup != levelup:
-        levelup = new_levelup
-        st.success(f"レベルアップ必要エネルギーを{levelup}に設定しました！")
-    
-    # エネルギーリセット
-    if st.button("🔄 エネルギーをリセット", type="secondary"):
-        st.session_state.energy = 0
-        st.success("エネルギーをリセットしました！")
-        st.rerun()
-    
-    st.markdown("---")
-    st.subheader("💾 データ管理")
-    
-    # 全データリセット
-    if st.button("🗑️ 全データリセット", type="secondary"):
-        st.session_state.energy = 0
-        if 'events' in st.session_state:
-            st.session_state.events = []
-        if 'feed_inventory' in st.session_state:
-            st.session_state.feed_inventory = {
-                "魚": {"count": 10, "icon": "🐟"},
-                "肉": {"count": 8, "icon": "🍖"},
-                "野菜": {"count": 15, "icon": "🥕"},
-                "果物": {"count": 12, "icon": "🍎"},
-                "特別餌": {"count": 3, "icon": "✨"}
-            }
-        if 'feeding_log' in st.session_state:
-            st.session_state.feeding_log = []
-        st.success("すべてのデータをリセットしました！")
-        st.rerun()
-    
-    if st.button('← メニューに戻る'):
-        st.session_state.current_page = 'main'
-        st.rerun()
 
 def statistics_page():
     """統計ページ"""
