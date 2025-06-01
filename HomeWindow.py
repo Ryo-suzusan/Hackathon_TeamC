@@ -884,23 +884,23 @@ def delete_task_page():
         # 右半分は空にするか、必要に応じて他のコンテンツを配置
         st.empty()
 
+def calculate_reward_quality(remaining_sec, total_sec):
+    if 4*remaining_sec > 3*total_sec:
+        return 4
+    elif 4*remaining_sec > 2*total_sec:
+        return 3
+    elif 4*remaining_sec > total_sec:
+        return 2
+    else:
+        return 1
+
 
 def task_list_page():
     """タスク一覧"""
-    # メインタイトルとメニューに戻るボタンを横並びで配置
-    title_col, button_col = st.columns([6, 1])
-    with title_col:
-        st.title('📋 タスク一覧')
-    with button_col:
-        st.write("")
-        st.write("")
-        if st.button('← メニューに戻る'):
-            if "done_message" in st.session_state:
-                del st.session_state["done_message"]
+    st.title('📋 タスク一覧')
 
-            st.session_state.current_page = 'main'
-            st.rerun()
-    st.markdown("---")
+    if "get_message" in st.session_state:
+        st.success(st.session_state.get_message)
 
     # 完了メッセージの表示（ページ上部）
     if "done_message" in st.session_state:
@@ -908,7 +908,7 @@ def task_list_page():
 
     #eventsの初期化
     if "events" not in st.session_state:
-        st.session_state.events = persistent_data.get('events', [])
+        st.session_state.events = []
 
     #for event in st.session_state.events:
         #key=f"text_area_{event['id']}"  # 一意なkeyを使用
@@ -920,7 +920,13 @@ def task_list_page():
         for i, event in enumerate(st.session_state.events):
             col1, col2, col3, col4 = st.columns([6, 1, 1, 1])  # タイトル + 編集 + 完了
 
+            starttime = datetime.datetime.fromisoformat(event["start"])
+            endtime = datetime.datetime.fromisoformat(event["end"])
+            formatted_start = starttime.strftime("%Y年%m月%d日 %H時%M分")
+            formatted_end = endtime.strftime("%Y年%m月%d日 %H時%M分")
+
             with col1:
+                status = "⏰ <span style='color:red;'>期限切れ</span>" if endtime <= datetime.datetime.now() else ""
                 st.markdown(f"""
                 <div style="
                     background-color: #f0f2f6;
@@ -930,20 +936,56 @@ def task_list_page():
                     box-shadow: 0 4px 6px rgba(0,0,0,0.1);
                 ">
                     <strong>{event['title']}</strong><br>
-                    🕒 {event['start']} 〜 {event['end']}
+                    🕒 {formatted_start} 〜 {formatted_end}
+                    {status}
                 </div>
                 """, unsafe_allow_html=True)
 
             with col2:
-                if st.button("✏️", key=f"edit_{event['id']}"):
+                if st.button("✏️編集", key=f"edit_{event['id']}"):
                     st.session_state.current_page = 'change_task'
                     st.session_state.edit_index = i  # 例: 編集対象を保存
                     st.rerun()
 
-            with col3:  
-                if st.button("✅", key=f"done_{event['id']}"):
+            with col3:
+                if endtime < datetime.datetime.now():
+                    if st.button("🕒 期限切れとして削除", key=f"expire_{event['id']}"):
+                        st.session_state.events.pop(i)
+                        st.session_state.done_message = f"⌛「{event['title']}」は期限切れとして削除しました。"
+                        st.rerun()
+                elif st.button("✅完了", key=f"done_{event['id']}"):
+
+                    now = datetime.datetime.now()
+                    total_sec = (endtime - starttime).total_seconds()
+                    remaining_sec = (endtime - now).total_seconds()
+
+                    rarity = calculate_reward_quality(remaining_sec, total_sec)
+
+                    if 'feed_inventory' not in st.session_state:
+                        st.session_state.feed_inventory = {
+                            #あとでHomeWindow.pyに修正
+                            "魚": {"count": 10, "icon": "🐟", "rank": 1},
+                            "肉": {"count": 8, "icon": "🍖", "rank": 2},
+                            "野菜": {"count": 15, "icon": "🥕", "rank": 3},
+                            "果物": {"count": 12, "icon": "🍎", "rank": 4},
+                            "特上肉": {"count": 3, "icon": "✨", "rank": 5}
+                        }
+
+                    if rarity == 4:
+                        st.session_state.feed_inventory["特上肉"]["count"] += 1
+                        st.session_state.get_message = f"「特上肉」を入手しました！"
+                    elif rarity == 3:
+                        st.session_state.feed_inventory["肉"]["count"] += 1
+                        st.session_state.get_message = f"「肉」を入手しました！"
+                    elif rarity == 2:
+                        st.session_state.feed_inventory["果物"]["count"] += 1
+                        st.session_state.get_message = f"「果物」を入手しました！"
+                    else:
+                        st.session_state.feed_inventory["野菜"]["count"] += 1
+                        st.session_state.get_message = f"「野菜」を入手しました！"
+
+
                     st.session_state.events.pop(i)
-                    save_persistent_data()
                     st.session_state.done_message = f"✅「{event['title']}」を完了しました！お疲れ様！"
                     st.rerun()
 
@@ -952,6 +994,15 @@ def task_list_page():
                     st.session_state.current_page = 'delete_task'
                     st.session_state.edit_index = i
                     st.rerun()
+
+
+                
+    if st.button('← メニューに戻る'):
+        if "done_message" in st.session_state:
+            del st.session_state["done_message"]
+
+        st.session_state.current_page = 'main'
+        st.rerun()
 
 
 # ページルーティング

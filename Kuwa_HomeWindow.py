@@ -714,6 +714,15 @@ def change_task_page():
             st.session_state.current_page = 'task_list'
             st.rerun()
 
+def calculate_reward_quality(remaining_sec, total_sec):
+    if 4*remaining_sec > 3*total_sec:
+        return 4
+    elif 4*remaining_sec > 2*total_sec:
+        return 3
+    elif 4*remaining_sec > total_sec:
+        return 2
+    else:
+        return 1
 
 
 def task_list_page():
@@ -772,6 +781,32 @@ def task_list_page():
                         st.session_state.done_message = f"⌛「{event['title']}」は期限切れとして削除しました。"
                         st.rerun()
                 elif st.button("✅完了", key=f"done_{event['id']}"):
+
+                    now = datetime.datetime.now()
+                    total_sec = (endtime - starttime).total_seconds()
+                    remaining_sec = (endtime - now).total_seconds()
+
+                    rarity = calculate_reward_quality(remaining_sec, total_sec)
+
+                    if 'feed_inventory' not in st.session_state:
+                        st.session_state.feed_inventory = {
+                            #あとでHomeWindow.pyに修正
+                            "魚": {"count": 10, "icon": "🐟", "rank": 1},
+                            "肉": {"count": 8, "icon": "🍖", "rank": 2},
+                            "野菜": {"count": 15, "icon": "🥕", "rank": 3},
+                            "果物": {"count": 12, "icon": "🍎", "rank": 4},
+                            "特別餌": {"count": 3, "icon": "✨", "rank": 5}
+                        }
+
+                    if rarity == 4:
+                        st.session_state.feed_inventory[""]["count"] += 1
+                    elif rarity == 3:
+                        st.session_state.feed_inventory["肉"]["count"] += 1
+                    elif rarity == 2:
+                        st.session_state.feed_inventory["果物"]["count"] += 1
+                    else:
+                        st.session_state.feed_inventory["野菜"]["count"] += 1
+
                     st.session_state.events.pop(i)
                     st.session_state.done_message = f"✅「{event['title']}」を完了しました！お疲れ様！"
                     st.rerun()
