@@ -363,11 +363,12 @@ def feed_box_page():
     # セッション状態の初期化
     if 'feed_inventory' not in st.session_state:
         st.session_state.feed_inventory = {
-            "魚": {"count": 10, "icon": "🐟"},
-            "肉": {"count": 8, "icon": "🍖"},
-            "野菜": {"count": 15, "icon": "🥕"},
-            "果物": {"count": 12, "icon": "🍎"},
-            "特別餌": {"count": 3, "icon": "✨"}
+            #あとでHomeWindow.pyに修正
+            "魚": {"count": 10, "icon": "🐟", "rank": 1},
+            "肉": {"count": 8, "icon": "🍖", "rank": 2},
+            "野菜": {"count": 15, "icon": "🥕", "rank": 3},
+            "果物": {"count": 12, "icon": "🍎", "rank": 4},
+            "特別餌": {"count": 3, "icon": "✨", "rank": 5}
         }
 
     if 'feeding_log' not in st.session_state:
@@ -376,24 +377,25 @@ def feed_box_page():
     if 'confirm_feed' not in st.session_state:
         st.session_state.confirm_feed = None
 
+    #あとでHomeWindow.pyに修正
     def feed_pet(feed_name):
         """ペットに餌を与える処理"""
         if st.session_state.feed_inventory[feed_name]["count"] > 0:
             st.session_state.feed_inventory[feed_name]["count"] -= 1
+            rank = st.session_state.feed_inventory[feed_name]["rank"]
             st.session_state.feeding_log.append(f"{feed_name}を与えました！")
             st.success(f"🎉 {feed_name}を与えました！ペットが喜んでいます！")
             st.balloons()
 
-            st.session_state.energy += 1
+            # 餌のランクに応じてエネルギーを増加
+            st.session_state.energy += rank
+        
             if st.session_state.energy < levelup:
                 st.image("MyPet/0.png")
                 st.success(f"レベルアップまで：{levelup - st.session_state.energy}")
             else:
                 st.image("MyPet/1.png")
                 st.success("レベルアップ！")
-        else:
-            st.error(f"❌ {feed_name}の在庫がありません")
-        st.session_state.confirm_feed = None
 
     def show_confirmation_dialog(feed_name):
         """確認ダイアログを表示"""
@@ -428,7 +430,7 @@ def feed_box_page():
             ):
                 show_confirmation_dialog(feed_name)
 
-    # 確認ダイアログ
+    # 確認ダイアログ(あとでHomeWindow.pyに修正)
     if st.session_state.confirm_feed:
         feed_name = st.session_state.confirm_feed
         feed_icon = st.session_state.feed_inventory[feed_name]["icon"]
@@ -438,15 +440,24 @@ def feed_box_page():
     
         col1, col2, col3 = st.columns([1, 2, 1])
         with col2:
-            st.markdown(f"<div style='text-align: center; font-size: 2em;'>{feed_icon}</div>", 
-                       unsafe_allow_html=True)
-            st.markdown(f"<div style='text-align: center; font-size: 1.2em;'>この<strong>{feed_name}</strong>をあげますか？</div>", 
-                       unsafe_allow_html=True)
+            st.markdown(f"<div style='text-align: center; font-size: 2em;'>{feed_icon}</div>", unsafe_allow_html=True)
+            st.markdown(f"<div style='text-align: center; font-size: 1.2em;'>この<strong>{feed_name}</strong>をあげますか？</div>", unsafe_allow_html=True)
         
-        if st.button("✅ OK", use_container_width=True, type="primary"):
+            col_ok, col_cancel = st.columns(2)
+            with col_ok:
+                if st.button("✅ OK", use_container_width=True, type="primary"):
                     feed_pet(feed_name)
-        if st.button("❌ キャンセル", use_container_width=True):
+                    # 3秒後に更新
+                    import time
+                    time.sleep(3)
+                    st.rerun()
+            with col_cancel:
+                if st.button("❌ キャンセル", use_container_width=True):
                     st.session_state.confirm_feed = None
+                    # 3秒後に更新
+                    import time
+                    time.sleep(3)
+                    st.rerun()
 
     # 餌やり履歴
     if st.session_state.feeding_log:
