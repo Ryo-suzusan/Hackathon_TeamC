@@ -32,6 +32,7 @@ def get_base64_bg(file_path):
     with open(file_path, "rb") as f:
         data = f.read()
     return base64.b64encode(data).decode()
+
 def get_base64_image(image_path):
     """画像をbase64エンコードする関数"""
     try:
@@ -45,48 +46,90 @@ def get_base64_image(image_path):
 image_path = "MyPet/bg_natural_flower.jpg"
 encoded_img = get_base64_bg(image_path)
 
-def create_image_button(image_path, button_key, width, height):
-    """イラストボタンを作成する関数"""
+def create_compact_image_button(image_path, button_text, button_key, width=120, height=120):
+    """コンパクトな画像ボタン（画像の下にボタン）"""
     
-    # 画像をbase64エンコード
     img_base64 = get_base64_image(image_path)
-    
     if img_base64 is None:
         return False
     
-    # CSSスタイルを定義
-    button_style = f"""
+    # 画像形式を判定
+    img_format = 'png' if image_path.lower().endswith('.png') else 'jpeg'
+    
+    # 中央配置のコンテナ
+    st.markdown(f"""
+    <div style="text-align: center; margin-bottom: 10px;">
+        <img src="data:image/{img_format};base64,{img_base64}" 
+             width="{width}" height="{height}" 
+             style="border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.2); 
+                    transition: transform 0.2s;"
+             onmouseover="this.style.transform='scale(1.05)'"
+             onmouseout="this.style.transform='scale(1)'">
+    </div>
+    """, unsafe_allow_html=True)
+    
+    # ボタンを中央配置（調整版）
+    st.markdown("""
     <style>
-    .custom-button-{button_key} {{
-        background-image: url('data:image/png;base64,{img_base64}');
-        background-size: cover;
-        background-repeat: no-repeat;
-        background-position: center;
-        border: none;
-        border-radius: 10px;
-        width: {width}px;
-        height: {height}px;
-        cursor: pointer;
-        transition: transform 0.2s;
-        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-    }}
-    
-    .custom-button-{button_key}:hover {{
-        transform: scale(1.05);
-        box-shadow: 0 6px 12px rgba(0,0,0,0.3);
-    }}
-    
-    .custom-button-{button_key}:active {{
-        transform: scale(0.95);
-    }}
+    .stButton > button {
+        display: block;
+        margin: 0 auto;
+    }
     </style>
-    """
+    """, unsafe_allow_html=True)
     
-    # CSSを適用
-    st.markdown(button_style, unsafe_allow_html=True)
+    return st.button(button_text, key=button_key, type="primary")
+
+def create_enhanced_image_button(image_path, button_text, button_key, width=120, height=120, fallback_emoji="📱"):
+    """画像ボタン（画像が見つからない場合は絵文字を表示）"""
     
-    # 空のボタンを作成（見た目はCSSで制御）
-    return st.button("", key=button_key, help="クリックしてください")
+    img_base64 = get_base64_image(image_path)
+    
+    if img_base64 is not None:
+        # 画像形式を判定
+        img_format = 'png' if image_path.lower().endswith('.png') else 'jpeg'
+        
+        # 画像を表示
+        st.markdown(f"""
+        <div style="text-align: center; margin-bottom: 10px;">
+            <img src="data:image/{img_format};base64,{img_base64}" 
+                 width="{width}" height="{height}" 
+                 style="border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.2); 
+                        transition: transform 0.2s;"
+                 onmouseover="this.style.transform='scale(1.05)'"
+                 onmouseout="this.style.transform='scale(1)'">
+        </div>
+        """, unsafe_allow_html=True)
+    else:
+        # 画像が見つからない場合は絵文字を表示
+        st.markdown(f"""
+        <div style="text-align: center; margin-bottom: 10px;">
+            <div style="width: {width}px; height: {height}px; 
+                        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                        border-radius: 10px; 
+                        display: flex; 
+                        align-items: center; 
+                        justify-content: center;
+                        font-size: 48px;
+                        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+                        transition: transform 0.2s;
+                        margin: 0 auto;"
+                 onmouseover="this.style.transform='scale(1.05)'"
+                 onmouseout="this.style.transform='scale(1)'">{fallback_emoji}</div>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    # ボタンを中央配置
+    st.markdown("""
+    <style>
+    .stButton > button {
+        display: block;
+        margin: 0 auto;
+    }
+    </style>
+    """, unsafe_allow_html=True)
+    
+    return st.button(button_text, key=button_key, type="primary")
 
 # 背景スタイルを設定
 st.markdown(
@@ -137,6 +180,15 @@ with col1:
 
 with col2:
     #画面右
+    # プログレスバー
+    st.subheader(f"Lv.{st.session_state.level + 1}")
+    if st.session_state.level != 3:
+        st.progress(st.session_state.energy / levelup[st.session_state.level + 1])
+        st.write(f"レベルアップまで: {levelup[st.session_state.level] - st.session_state.energy}/{levelup[st.session_state.level]}")
+    else:
+        st.progress(1 / 1)
+        st.write(f"レベルMAX")
+        
     file_ = open(f"MyPet/Idle{st.session_state.level}.gif", "rb")
     contents = file_.read()
     data_url = base64.b64encode(contents).decode("utf-8")
@@ -152,22 +204,146 @@ def main_page():
     st.title('育成')
     button_path = "MyPet/esa_button.png"
     
-    # 他のボタンも追加可能
+    # 第1行：メイン機能
     col1, col2, col3 = st.columns(3)
     with col1:
-        if st.button('タスク追加'):
+        if create_enhanced_image_button("MyPet/task_add.png", "タスク追加", "add_task_btn", width=120, height=120, fallback_emoji="➕"):
             st.session_state.current_page = 'add_tasks'
-            st.rerun()  # ページを再読み込み
+            st.rerun()
         
     with col2:
-        if st.button('タスク一覧'):
+        if create_enhanced_image_button("MyPet/book.png", "タスク一覧", "task_list_btn", width=120, height=120, fallback_emoji="📋"):
             st.session_state.current_page = 'task_list'
             st.rerun()
 
     with col3:
-        if st.button('エサ箱'):
+        if create_enhanced_image_button("MyPet/esa_button.png", "エサ箱", "feed_box_btn", width=120, height=120, fallback_emoji="🍖"):
             st.session_state.current_page = 'feed_box'
             st.rerun()
+
+    # 第2行：追加機能
+    st.subheader("🔧 その他の機能")
+    col5, col6 = st.columns(2)
+    
+    with col5:
+        if create_enhanced_image_button("MyPet/tokei.png", "統計", "stats_btn", width=120, height=120, fallback_emoji="📊"):
+            st.session_state.current_page = 'statistics'
+            st.rerun()
+    
+    with col6:
+        if create_enhanced_image_button("MyPet/help.png", "ヘルプ", "help_btn", width=120, height=120, fallback_emoji="❓"):
+            st.session_state.current_page = 'help'
+            st.rerun()
+
+def statistics_page():
+    """統計ページ"""
+    # メインタイトルとメニューに戻るボタンを横並びで配置(あとでHomeWindow.pyに修正)
+    title_col, button_col = st.columns([6, 1])
+    with title_col:
+        st.title("📊 統計")
+    with button_col:
+        st.write("")
+        st.write("")
+        if st.button('← メニューに戻る', key="back_to_menu_top"):
+            st.session_state.current_page = 'main'
+            st.rerun()
+    st.markdown("---")
+    
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        st.subheader("🎮 ゲーム統計")
+        st.metric("現在のエネルギー", st.session_state.energy)
+        progress_percentage = (st.session_state.energy / levelup) * 100
+        st.metric("レベル進捗", f"{progress_percentage:.1f}%")
+        
+        # タスク統計
+        if 'events' in st.session_state:
+            total_tasks = len(st.session_state.events)
+            st.metric("総タスク数", total_tasks)
+        
+    with col2:
+        st.subheader("🍽️ 餌やり統計")
+        if 'feeding_log' in st.session_state:
+            total_feedings = len(st.session_state.feeding_log)
+            st.metric("総餌やり回数", total_feedings)
+        
+        if 'feed_inventory' in st.session_state:
+            total_inventory = sum(feed_data["count"] for feed_data in st.session_state.feed_inventory.values())
+            st.metric("総在庫数", f"{total_inventory}個")
+    
+    # 最近の活動
+    st.subheader("📈 最近の活動")
+    if 'feeding_log' in st.session_state and st.session_state.feeding_log:
+        st.write("最近の餌やり:")
+        for log in st.session_state.feeding_log[-3:]:
+            st.write(f"• {log}")
+    else:
+        st.info("まだ餌やりの記録がありません")
+
+
+def help_page():
+    """ヘルプページ"""
+    # メインタイトルとメニューに戻るボタンを横並びで配置(あとでHomeWindow.pyに修正)
+    title_col, button_col = st.columns([6, 1])
+    with title_col:
+        st.title("❓ ヘルプ")
+    with button_col:
+        st.write("")
+        st.write("")
+        if st.button('← メニューに戻る', key="back_to_menu_top"):
+            st.session_state.current_page = 'main'
+            st.rerun()
+    st.markdown("---")
+    
+    st.subheader("🐾 育てて達成！マイペットについて")
+    st.write("""
+    このアプリは、タスク管理とペット育成を組み合わせた楽しいアプリです！
+    タスクを完了したり、ペットに餌をあげたりしてペットを育てましょう。
+    """)
+    
+    st.subheader("📖 使い方")
+    
+    with st.expander("📝 タスク管理"):
+        st.write("""
+        **タスク追加**: 新しいタスクを追加できます
+        - 日付と時刻を指定してタスクを登録
+        - カレンダーでタスクの確認が可能
+        
+        **タスク一覧**: 登録済みのタスクを一覧表示
+        - すべてのタスクを時系列で確認
+        """)
+    
+    with st.expander("🍖 ペット育成"):
+        st.write("""
+        **エサ箱**: ペットに餌をあげてエネルギーを増やそう
+        - 5種類の餌から選択可能
+        - 餌をあげるとエネルギーが1増加
+        - エネルギーが一定値に達するとレベルアップ！
+        """)
+    
+    with st.expander("📊 統計機能"):
+        st.write("""
+        **統計**: ゲームの進捗状況を確認
+        - 現在のエネルギーとレベル進捗
+        - タスクと餌やりの統計
+        - 最近の活動履歴
+        """)
+    
+    with st.expander("⚙️ 設定"):
+        st.write("""
+        **設定**: ゲームの各種設定を変更
+        - レベルアップ必要エネルギーの調整
+        - データのリセット機能
+        """)
+    
+    st.subheader("💡 ヒント")
+    st.info("""
+    - 定期的にタスクを追加して、計画的に進めましょう
+    - ペットの餌やりを忘れずに！エネルギーがたまるとレベルアップします
+    - 統計画面で進捗を確認して、モチベーションを保ちましょう
+    """)
+    
 
 def feed_box_page():
     """エサ箱ページ"""
@@ -225,8 +401,16 @@ def feed_box_page():
         """確認ダイアログを表示"""
         st.session_state.confirm_feed = feed_name
 
-    # メインタイトル
-    st.title("🐾 餌やりコーナー")
+    # メインタイトルとメニューに戻るボタンを横並びで配置(あとでHomeWindow.pyに修正)
+    title_col, button_col = st.columns([6, 1])
+    with title_col:
+        st.title("🐾 餌やりコーナー")
+    with button_col:
+        st.write("")
+        st.write("")
+        if st.button('← メニューに戻る', key="back_to_menu_top"):
+            st.session_state.current_page = 'main'
+            st.rerun()
     st.markdown("---")
 
     # 餌の在庫表示と餌やりボタン
@@ -240,7 +424,7 @@ def feed_box_page():
             # 餌のアイコンと名前
             st.markdown(f"<div style='text-align: center; font-size: 3em;'>{feed_data['icon']}</div>", 
                        unsafe_allow_html=True)
-            st.markdown(f"<div style='text-align: center; font-weight: bold;'>{feed_name}</div>", 
+            st.markdown(f"<div style='text-align: center; font-weight: bold;'>{feed_name}(+{feed_data['rank']})</div>", 
                        unsafe_allow_html=True)
             st.markdown(f"<div style='text-align: center; color: #666;'>在庫: {feed_data['count']}個</div>", 
                        unsafe_allow_html=True)
@@ -292,48 +476,6 @@ def feed_box_page():
         recent_logs = st.session_state.feeding_log[-5:]
         for i, log in enumerate(reversed(recent_logs)):
             st.write(f"{len(recent_logs) - i}. {log}")
-
-    """
-    # サイドバーに統計情報
-    with st.sidebar:
-        st.header("📊 統計")
-    
-        # 総在庫数
-        total_inventory = sum(feed_data["count"] for feed_data in st.session_state.feed_inventory.values())
-        st.metric("総在庫数", f"{total_inventory}個")
-    
-        # 餌やり回数
-        total_feedings = len(st.session_state.feeding_log)
-        st.metric("餌やり回数", f"{total_feedings}回")
-    
-        st.markdown("---")
-        st.subheader("🔧 管理")
-    
-        # 在庫補充ボタン
-        if st.button("📦 在庫補充", use_container_width=True):
-            for feed_name in st.session_state.feed_inventory:
-                st.session_state.feed_inventory[feed_name]["count"] += 5
-            st.success("在庫を補充しました！")
-            st.rerun()
-    
-        # リセットボタン
-        if st.button("🔄 データリセット", use_container_width=True, type="secondary"):
-            st.session_state.feed_inventory = {
-                "魚": {"count": 10, "icon": "🐟"},
-                "肉": {"count": 8, "icon": "🍖"},
-                "野菜": {"count": 15, "icon": "🥕"},
-                "果物": {"count": 12, "icon": "🍎"},
-                "特別餌": {"count": 3, "icon": "✨"}
-            }
-            st.session_state.feeding_log = []
-            st.session_state.confirm_feed = None
-            st.success("データをリセットしました！")
-            st.rerun()
-    """
-    
-    if st.button('← メニューに戻る'):
-        st.session_state.current_page = 'main'
-        st.rerun()
 
 def add_tasks_page():
     """タスク追加"""
@@ -428,8 +570,15 @@ def add_tasks_page():
                     st.rerun()
         
         else:
-            # 通常のタスク追加フォーム
-            st.subheader("📝 タスク追加")
+            # サブヘッダーとボタンを横並びで配置(あとでHomeWindow.pyに修正)
+            header_col, btn_col = st.columns([2.4, 1])
+            with header_col:
+                st.subheader("📝 タスク追加")
+            with btn_col:
+                st.write("")
+                if st.button('← メニューに戻る'):
+                    st.session_state.current_page = 'main'
+                    st.rerun()
 
             # 選択中の日付をデフォルトに
             event_date = st.date_input("日付", st.session_state.selected_date, key="event_date_input")
@@ -493,13 +642,75 @@ def add_tasks_page():
     with right_col:
         st.empty()  # 右側は空にしておく
 
-    if st.button('← メニューに戻る'):
-        st.session_state.current_page = 'main'
-        st.rerun()
+def change_task_page():
+    """タスク編集"""
+    st.title('✏️ タスク編集')
+    
+    if "edit_index" not in st.session_state or st.session_state.edit_index is None:
+        st.error("編集するタスクが選択されていません")
+        if st.button('← 一覧に戻る'):
+            st.session_state.current_page = 'task_list'
+            st.rerun()
+        return
+    
+    # 編集対象のタスクを取得
+    edit_event = st.session_state.events[st.session_state.edit_index]
+    
+    # 編集フォーム
+    title = st.text_input("タスク名", value=edit_event['title'])
+    # 既存の終了時刻から日付と時刻を分離
+    end_datetime = datetime.datetime.fromisoformat(edit_event['end'])
+    
+    event_date = st.date_input("日付", value=end_datetime.date())
+    end_time = st.time_input("終了時刻", value=end_datetime.time())
+    
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        if st.button("💾 保存"):
+            if title.strip():
+                # タスクを更新
+                updated_event = {
+                    "id": edit_event['id'],
+                    "title": title.strip(),
+                    "start": edit_event['start'],
+                    "end": datetime.datetime.combine(event_date, end_time).isoformat(),
+                }
+                
+                st.session_state.events[st.session_state.edit_index] = updated_event
+                st.success("✅ タスクを更新しました！")
+                
+                # 編集状態をクリア
+                st.session_state.edit_index = None
+                st.session_state.current_page = 'task_list'
+                st.rerun()
+            else:
+                st.error("❌ 正しいタスク名を入力してください。")
+    
+    with col2:
+        if st.button("❌ キャンセル"):
+            st.session_state.edit_index = None
+            st.session_state.current_page = 'task_list'
+            st.rerun()
+
+
 
 def task_list_page():
     """タスク一覧"""
-    st.title('📋 タスク一覧')
+    # メインタイトルとメニューに戻るボタンを横並びで配置(あとでHomeWindow.pyに修正)
+    title_col, button_col = st.columns([6, 1])
+    with title_col:
+        st.title('📋 タスク一覧')
+    with button_col:
+        st.write("")
+        st.write("")
+        if st.button('← メニューに戻る'):
+            if "done_message" in st.session_state:
+                del st.session_state["done_message"]
+
+            st.session_state.current_page = 'main'
+            st.rerun()
+    st.markdown("---")
 
     # 完了メッセージの表示（ページ上部）
     if "done_message" in st.session_state:
@@ -535,7 +746,7 @@ def task_list_page():
 
             with col2:
                 if st.button("✏️", key=f"edit_{event['id']}"):
-                    # 編集処理
+                    st.session_state.current_page = 'change_task'
                     st.session_state.edit_index = i  # 例: 編集対象を保存
                     st.rerun()
 
@@ -545,13 +756,7 @@ def task_list_page():
                     st.session_state.done_message = f"✅「{event['title']}」を完了しました！お疲れ様！"
                     st.rerun()
 
-                
-    if st.button('← メニューに戻る'):
-        if "done_message" in st.session_state:
-            del st.session_state["done_message"]
 
-        st.session_state.current_page = 'main'
-        st.rerun()
 
 # ページルーティング
 if st.session_state.current_page == 'main':
@@ -562,12 +767,9 @@ elif st.session_state.current_page == 'add_tasks':
     add_tasks_page()
 elif st.session_state.current_page == 'task_list':
     task_list_page()
-
-# プログレスバー
-st.subheader(f"Lv.{st.session_state.level + 1}")
-if st.session_state.level != 3:
-    st.progress(st.session_state.energy / levelup[st.session_state.level + 1])
-    st.write(f"レベルアップまで: {st.session_state.energy}/{levelup[st.session_state.level]}")
-else:
-    st.progress(1 / 1)
-    st.write(f"レベルMAX")
+elif st.session_state.current_page == 'statistics':
+    statistics_page()
+elif st.session_state.current_page == 'help':
+    help_page()
+elif st.session_state.current_page == 'change_task':
+    change_task_page()
